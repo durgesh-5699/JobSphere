@@ -6,6 +6,7 @@ import JobDetail from "./pages/JobDetail";
 import PostJob from "./pages/PostJob";
 import Navbar from "./components/navbar";
 import Footer from "./components/footer";
+import ProtectedRoutes from "./components/ProtectedRoute";
 
 export default function App() {
   return (
@@ -13,11 +14,23 @@ export default function App() {
       <Navbar />
       <main className="flex-1">
         <Routes>
-          <Route path="/" element={<Dashboard />} />
+          <Route path='/'  element={
+            <ProtectedRoutes>
+              <Dashboard />
+            </ProtectedRoutes>
+          }/>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          <Route path="/jobs/:id" element={<JobDetail />} />
-          <Route path="/post-job" element={<PostJob />} />
+          <Route path='/jobs/:id' element={
+            <ProtectedRoutes>
+              <JobDetail />
+            </ProtectedRoutes>
+          }/>
+          <Route path="/post-job" element={
+            <ProtectedRoutes>
+              <PostJob />
+            </ProtectedRoutes>
+          } />
         </Routes>
       </main>
       <Footer/>
