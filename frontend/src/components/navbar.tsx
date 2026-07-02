@@ -24,15 +24,23 @@ export default function Navbar(){
             Dashboard
           </Link>
 
-          {user?.role === "admin" && (
-            <Link
-              to="/post-job"
-              className="flex items-center gap-1.5 text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors"
-            >
-              <Briefcase size={16} />
-              Post a Job
-            </Link>
-          )}
+          {user && (
+  <>
+    <Link
+      to="/post-job"
+      className="flex items-center gap-1.5 text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors"
+    >
+      <Briefcase size={16} />
+      Post a Job
+    </Link>
+    <Link
+      to="/my-jobs"
+      className="flex items-center gap-1.5 text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors"
+    >
+      My Jobs
+    </Link>
+  </>
+)}
         </div>
 
         {/* Auth actions */}

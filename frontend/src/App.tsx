@@ -2,11 +2,12 @@ import { Route, Routes } from "react-router-dom";
 import Dashboard from "./pages/Dashboard";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
-import JobDetail from "./pages/JobDetails";
+import JobDetail from "./pages/MyJob";
 import PostJob from "./pages/PostJob";
 import Navbar from "./components/navbar";
 import Footer from "./components/footer";
 import ProtectedRoutes from "./components/ProtectedRoute";
+import MyJobs from "./pages/MyJob";
 
 export default function App() {
   return (
@@ -29,6 +30,11 @@ export default function App() {
           <Route path="/post-job" element={
             <ProtectedRoutes>
               <PostJob />
+            </ProtectedRoutes>
+          } />
+          <Route path='my-jobs' element={
+            <ProtectedRoutes>
+              <MyJobs />
             </ProtectedRoutes>
           } />
         </Routes>
