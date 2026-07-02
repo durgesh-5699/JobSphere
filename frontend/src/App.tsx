@@ -2,7 +2,7 @@ import { Route, Routes } from "react-router-dom";
 import Dashboard from "./pages/Dashboard";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
-import JobDetail from "./pages/JobDetail";
+import JobDetail from "./pages/JobDetails";
 import PostJob from "./pages/PostJob";
 import Navbar from "./components/navbar";
 import Footer from "./components/footer";
