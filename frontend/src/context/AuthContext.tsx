@@ -26,17 +26,18 @@ export const AuthProvider = ({children}:{children:React.ReactNode})=>{
         }
     }
 
-    const login =async({email,password}:{email:string,password:string})=>{
+    const login =async(email:string,password:string)=>{
         const res = await axios.post("/api/auth/login",{email,password});
         setUser(res.data.user);
     }
 
-    const register = async({name,email,password}:{name:string,email:string,password:string})=>{
+    const register = async(name:string,email:string,password:string)=>{
         const res = await axios.post("/api/auth/register",{name,email,password});
         setUser(res.data.user);
     }
 
     const logout = async ()=>{
+        console.log("this is working fine");
         await axios.post("/api/auth/logout");
         setUser(null);
     }

@@ -1,6 +1,6 @@
 import type { Job } from "../types/job.types";
 
-export const mockJobs: Job[] = [
+export const mockJobs:Job[]=[
   {
     _id: "1",
     title: "SDE Intern",

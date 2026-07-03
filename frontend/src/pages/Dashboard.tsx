@@ -37,7 +37,7 @@ export default function Dashboard() {
           </span>
         </div>
         <h1 className="font-display text-3xl font-bold text-slate-900 mb-2">
-          Openings shared by your campus
+          Openings shared by your Friends
         </h1>
         <p className="text-slate-500 mb-8">
           Spotted by students, verified before it hits the board.

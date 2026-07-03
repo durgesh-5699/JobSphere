@@ -21,7 +21,7 @@ export default function Register(){
 
         try {
             await register(name!,email!,password!);
-            navigate("/l");
+            navigate("/");
         }catch(err:any){
             setError(err.response?.data?.message || "regsitration failed. Try again");
         }finally{
