@@ -2,12 +2,13 @@ import { Route, Routes } from "react-router-dom";
 import Dashboard from "./pages/Dashboard";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
-import JobDetail from "./pages/jobDetails";
+import JobDetail from "./pages/JobDetails";
 import PostJob from "./pages/PostJob";
 import Navbar from "./components/navbar";
 import Footer from "./components/footer";
 import ProtectedRoutes from "./components/ProtectedRoute";
 import MyJobs from "./pages/MyJob";
+import AppliedJobs from "./pages/AppliedJobs";
 
 export default function App() {
   return (
@@ -37,6 +38,11 @@ export default function App() {
               <MyJobs />
             </ProtectedRoutes>
           } />
+          <Route path='/applied-jobs' element={
+            <ProtectedRoutes>
+              <AppliedJobs />
+            </ProtectedRoutes>
+          }/>
         </Routes>
       </main>
       <Footer/>

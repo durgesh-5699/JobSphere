@@ -2,6 +2,7 @@ import {
   ArrowLeft,
   Building2,
   Calendar,
+  Check,
   ExternalLink,
   IndianRupee,
   MapPin,
@@ -9,12 +10,23 @@ import {
 } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { mockJobs } from "../data/mockJobs";
+import useApplications from "../context/useApplication";
 
 export default function JobDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
 
   const job = mockJobs.find((j) => j._id === id);
+
+  const { isApplied, applyToJob } = useApplications();
+  const applied = job ? isApplied(job._id) : false;
+
+  const handleApply = () => {
+    if (!job) return;
+    applyToJob(job._id);
+    window.open(job.applyLink, "_blank", "noopener,noreferrer");
+  };
+
   const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleDateString("en-IN", {
       day: "numeric",
@@ -86,15 +98,27 @@ export default function JobDetail() {
           </div>
 
           {/* Apply button */}
-          <a
-            href={job?.applyLink}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white font-semibold text-sm px-6 py-3 rounded-xl transition-colors"
+          <button
+            onClick={handleApply}
+            disabled={applied}
+            className={`inline-flex items-center gap-2 font-semibold text-sm px-6 py-3 rounded-xl transition-colors ${
+              applied
+                ? "bg-green-50 text-green-700 border border-green-200 cursor-default"
+                : "bg-slate-900 hover:bg-slate-800 text-white"
+            }`}
           >
-            Apply now
-            <ExternalLink size={16} />
-          </a>
+            {applied ? (
+              <>
+                <Check size={16} />
+                Applied
+              </>
+            ) : (
+              <>
+                Apply now
+                <ExternalLink size={16} />
+              </>
+            )}
+          </button>
         </div>
 
         {/* Description card */}

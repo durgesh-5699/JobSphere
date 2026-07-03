@@ -1,9 +1,14 @@
-import { Building2, IndianRupee, MapPin } from "lucide-react";
+import { Building2, Check, IndianRupee, MapPin } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import type { Job } from "../types/job.types";
+import  useApplications from "../context/useApplication";
 
 export default function JobCard({ job }: { job: Job }) {
   const navigate = useNavigate();
+
+  const { isApplied } = useApplications();
+  const applied = isApplied(job._id);
+
   const timeAgo = (datestr: string) => {
     const diff = Date.now() - new Date(datestr).getTime();
     const days = Math.floor(diff / (1000 * 60 * 60 * 24));
@@ -21,9 +26,17 @@ export default function JobCard({ job }: { job: Job }) {
         <div className="w-11 h-11 rounded-xl bg-indigo-50 flex items-center justify-center">
           <Building2 size={20} className="text-indigo-600" />
         </div>
-        <span className="text-xs text-slate-400 font-medium">
-          {timeAgo(job.createdAt)}
-        </span>
+        <div className="flex flex-col items-end gap-1">
+          {applied && (
+            <span className="flex items-center gap-1 text-[10px] font-semibold text-green-700 bg-green-50 px-2 py-0.5 rounded-full">
+              <Check size={10} />
+              Applied
+            </span>
+          )}
+          <span className="text-xs text-slate-400 font-medium">
+            {timeAgo(job.createdAt)}
+          </span>
+        </div>
       </div>
 
       <h3 className="font-display font-bold text-slate-900 text-lg mb-1 group-hover:text-indigo-600 transition-colors">
