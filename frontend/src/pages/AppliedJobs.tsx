@@ -1,13 +1,10 @@
 import { Link } from "react-router-dom";
 import { Send } from "lucide-react";
 import JobCard from "../components/jobCard";
-import { mockJobs } from "../data/mockJobs";
 import useApplications from "../context/useApplication";
 
 export default function AppliedJobs(){
-  const { appliedJobIds } = useApplications();
-
-  const appliedJobs = mockJobs.filter((job) => appliedJobIds.includes(job._id));
+  const { applications,loading } = useApplications();
 
   return (
     <div className="bg-slate-50 min-h-[calc(100vh-73px)]">
@@ -16,13 +13,13 @@ export default function AppliedJobs(){
           Jobs you've applied to
         </h1>
         <p className="text-slate-500 mb-8">
-          {appliedJobs.length} {appliedJobs.length === 1 ? "application" : "applications"} so far
+          {applications.length} {applications.length === 1 ? "application" : "applications"} so far
         </p>
 
-        {appliedJobs.length > 0 ? (
+        {applications.length > 0 ? (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {appliedJobs.map((job) => (
-              <JobCard key={job._id} job={job} />
+            {applications.map((app) => (
+              <JobCard key={app.job._id} job={app.job} />
             ))}
           </div>
         ) : (

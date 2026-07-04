@@ -1,12 +1,4 @@
-import {
-  ArrowLeft,
-  Building2,
-  Calendar,
-  Check,
-  ExternalLink,
-  IndianRupee,
-  MapPin,
-} from "lucide-react";
+import {ArrowLeft,Building2,Calendar,Check,ExternalLink,IndianRupee,MapPin,} from "lucide-react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import useApplications from "../context/useApplication";
 import { useEffect, useState } from "react";
@@ -39,9 +31,9 @@ export default function JobDetail() {
 
   const applied = job ? isApplied(job._id) : false;
 
-  const handleApply = () => {
+  const handleApply = async() => {
     if (!job) return;
-    applyToJob(job._id);
+    await applyToJob(job._id);
     window.open(job.applyLink, "_blank", "noopener,noreferrer");
   };
 
