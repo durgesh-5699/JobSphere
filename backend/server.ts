@@ -7,6 +7,7 @@ import authRouter from "./routes/authRoutes.ts";
 import morgan from "morgan"
 import jobRouter from "./routes/jobRoutes.ts";
 import applicationRouter from "./routes/applicationRoutes.ts";
+import aiRouter from "./routes/aiRoutes.ts";
 
 connectDB();
 
@@ -23,6 +24,7 @@ app.use(cors({
 app.use("/api/auth",authRouter);
 app.use("/api/jobs",jobRouter);
 app.use("/api/applications",applicationRouter);
+app.use("/api/ai",aiRouter);
 
 const PORT = process.env.PORT;
 app.listen(PORT,()=>{

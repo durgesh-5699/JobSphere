@@ -5,11 +5,13 @@ import {
   LinkIcon,
   MapPin,
   Send,
+  Sparkles,
   X,
 } from "lucide-react";
 import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { createJob } from "../services/jobService";
+import { parseJobInput } from "../services/aiService";
 
 interface JobFormData {
   title: string;
@@ -34,6 +36,10 @@ export default function PostJob() {
   const [skillInput, setSkillInput] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const [rawText,setRawText] = useState("");
+  const [aiLoading,setAiLoading] = useState(false);
+  const [aiError,setAiError] = useState("");
 
   const navigate = useNavigate();
 
@@ -60,6 +66,30 @@ export default function PostJob() {
     setSkills(skills.filter((s) => s !== skillToRemove));
   };
 
+  const handleAutoFill = async()=>{
+    if(rawText.trim().length<10){
+      setAiError("Paste job details or a link.");
+      return;
+    }
+
+    try{
+      const parsed = await parseJobInput(rawText);
+      setFormData({
+        title: parsed.title,
+        company: parsed.company,
+        description: parsed.description,
+        applyLink: parsed.applyLink,
+        location: parsed.location,
+        salary: parsed.salary,
+      })
+      setSkills(parsed.skills || []);
+    }catch(err:any){
+       setAiError(err.response?.data?.message || "Couldn't parse that. Try filling manually.");
+    }finally{
+      setAiLoading(false);
+    }
+  }
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError("");
@@ -77,7 +107,7 @@ export default function PostJob() {
     } finally {
        setLoading(false);
     }
-    };
+  };
 
   return (
     <div className="bg-slate-50 min-h-[calc(100vh-73px)]">
@@ -92,6 +122,41 @@ export default function PostJob() {
           Spotted a role? Post it so your batchmates don't miss it.
         </p>
 
+          <div className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 mb-6">
+          <div className="flex items-center gap-2 mb-3">
+            <Sparkles size={18} className="text-amber-500" />
+            <h2 className="font-display font-bold text-slate-900">Auto-fill with AI</h2>
+          </div>
+          <p className="text-sm text-slate-500 mb-4">
+            Paste the job info you found, or just paste the job link — AI will
+            fill the form below for you.
+          </p>
+
+          {aiError && (
+            <div className="mb-4 text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg px-4 py-2.5">
+              {aiError}
+            </div>
+          )}
+
+          <textarea
+            value={rawText}
+            onChange={(e) => setRawText(e.target.value)}
+            rows={5}
+            placeholder="Paste raw job text, or paste a job posting link (e.g. https://company.com/careers/role)"
+            className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all resize-none mb-3"
+          />
+
+          <button
+            type="button"
+            onClick={handleAutoFill}
+            disabled={aiLoading}
+            className="flex items-center gap-2 bg-amber-400 hover:bg-amber-500 text-slate-900 font-semibold text-sm px-5 py-2.5 rounded-xl transition-colors disabled:opacity-50"
+          >
+            <Sparkles size={16} />
+            {aiLoading ? "Reading..." : "Auto-fill form"}
+          </button>
+        </div>
+        
         {error && (
           <div className="mb-5 text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg px-4 py-2.5">
             {error}

@@ -13,10 +13,15 @@ if(!process.env.JWT_SECRET){
     throw new Error("JWT_SECRET is not defined");
 }
 
+if(!process.env.GROQ_API_KEY){
+    throw new Error("GROQ_API_KEY is not defined");
+}
+
 const config = {
     MONGO_URI : process.env.MONGO_URI,
     CLIENT_URL : process.env.CLIENT_URL,
-    JWT_SECRET : process.env.JWT_SECRET
+    JWT_SECRET : process.env.JWT_SECRET,
+    GROQ_API_KEY : process.env.GROQ_API_KEY
 };
 
 export default config ;
