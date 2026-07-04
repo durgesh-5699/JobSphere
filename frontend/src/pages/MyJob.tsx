@@ -1,14 +1,28 @@
 import { Link } from "react-router-dom";
 import { Briefcase, Plus } from "lucide-react";
 import JobCard from "../components/jobCard";
-import { mockJobs } from "../data/mockJobs";
-import useAuth from "../context/useAuth";
+import { useEffect, useState } from "react";
+import type { Job } from "../types/job.types";
+import { fetchMyJobs } from "../services/jobService";
 
 export default function MyJobs(){
-  const { user } = useAuth();
+  const [myJobs,setMyJobs] = useState<Job[]>([]);
+  const [loading,setLoading] = useState(true);
 
-  // Real backend aane pe: filter by postedBy === user._id
-  const myJobs = mockJobs.filter((job) => job.postedBy === user?.name);
+  useEffect(()=>{
+    loadMyJobs();
+  },[])
+
+  const loadMyJobs=async()=>{
+    try{
+      const data = await fetchMyJobs();
+      setMyJobs(data);
+    }catch(err:any){
+      console.log("failed to load your jobs",err.message);
+    }finally{
+      setLoading(false);
+    }
+  }
 
   return (
     <div className="bg-slate-50 min-h-[calc(100vh-73px)]">
@@ -31,7 +45,9 @@ export default function MyJobs(){
           </Link>
         </div>
 
-        {myJobs.length > 0 ? (
+        {loading ? (
+          <p className="text-slate-500 text-center py-20">Loading...</p>
+        ) : myJobs.length > 0 ? (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {myJobs.map((job) => (
               <JobCard key={job._id} job={job} />

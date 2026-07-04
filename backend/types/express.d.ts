@@ -4,7 +4,7 @@ import { IJob } from "../models/jobModel";
 declare global {
   namespace Express {
     interface Request {
-      user?: IJob | any; // Ya phir apna proper User type lagao instead of 'any'
+      user?: any; // Ya phir apna proper User type lagao instead of 'any'
     }
   }
 }

@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
+import { createJob } from "../services/jobService";
 
 interface JobFormData {
   title: string;
@@ -29,7 +30,7 @@ export default function PostJob() {
     salary: "",
   });
 
-  const [skill, setSkills] = useState<string[]>([]);
+  const [skills, setSkills] = useState<string[]>([]);
   const [skillInput, setSkillInput] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -46,30 +47,31 @@ export default function PostJob() {
     if (e.key === "Enter" || e.key === ",") {
       e.preventDefault();
       const trimmed = skillInput.trim();
-      if (trimmed && !skill.includes(trimmed)) {
-        setSkills([...skill, trimmed]);
+      if (trimmed && !skills.includes(trimmed)) {
+        setSkills([...skills, trimmed]);
       }
       setSkillInput("");
-    } else if (e.key === "Backspace" && skillInput === "" && skill.length > 0) {
-      setSkills(skill.slice(0, -1));
+    } else if (e.key === "Backspace" && skillInput === "" && skills.length > 0) {
+      setSkills(skills.slice(0, -1));
     }
   };
 
   const removeSkill = (skillToRemove: string) => {
-    setSkills(skill.filter((s) => s !== skillToRemove));
+    setSkills(skills.filter((s) => s !== skillToRemove));
   };
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError("");
 
-    if (skill.length === 0) {
+    if (skills.length === 0) {
       setError("Add at least one skill.");
       return;
     }
     setLoading(true);
     try {
-      navigate('/');
+      await createJob({...formData,skills});
+      navigate("/");
     } catch(err:any){
       setError(err.response?.data?.message || "Failed to post job. Try again.");
     } finally {
@@ -97,7 +99,7 @@ export default function PostJob() {
         )}
 
         <form
-          //   onSubmit={handleSubmit}
+            onSubmit={handleSubmit}
           className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 space-y-5"
         >
           {/* Title + Company */}
@@ -114,8 +116,8 @@ export default function PostJob() {
                 <input
                   type="text"
                   name="title"
-                  //   value={formData.title}
-                  //   onChange={handleChange}
+                    value={formData.title}
+                    onChange={handleChange}
                   required
                   placeholder="SDE 1"
                   className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
@@ -135,8 +137,8 @@ export default function PostJob() {
                 <input
                   type="text"
                   name="company"
-                  //   value={formData.company}
-                  //   onChange={handleChange}
+                    value={formData.company}
+                    onChange={handleChange}
                   required
                   placeholder="Razorpay"
                   className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
@@ -159,8 +161,8 @@ export default function PostJob() {
                 <input
                   type="text"
                   name="location"
-                  //   value={formData.location}
-                  //   onChange={handleChange}
+                    value={formData.location}
+                    onChange={handleChange}
                   required
                   placeholder="Bangalore / Remote"
                   className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
@@ -181,8 +183,8 @@ export default function PostJob() {
                 <input
                   type="text"
                   name="salary"
-                  //   value={formData.salary}
-                  //   onChange={handleChange}
+                    value={formData.salary}
+                    onChange={handleChange}
                   placeholder="8 LPA"
                   className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
                 />
@@ -203,8 +205,8 @@ export default function PostJob() {
               <input
                 type="url"
                 name="applyLink"
-                // value={formData.applyLink}
-                // onChange={handleChange}
+                value={formData.applyLink}
+                onChange={handleChange}
                 required
                 placeholder="https://company.com/careers/role-id"
                 className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
@@ -218,7 +220,7 @@ export default function PostJob() {
               Skills required
             </label>
             <div className="flex flex-wrap items-center gap-2 w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus-within:ring-2 focus-within:ring-indigo-500 focus-within:border-transparent transition-all">
-              {skill.map((skill) => (
+              {skills.map((skill) => (
                 <span
                   key={skill}
                   className="flex items-center gap-1 text-xs font-medium text-indigo-700 bg-indigo-50 pl-2.5 pr-1.5 py-1 rounded-full"
@@ -239,11 +241,11 @@ export default function PostJob() {
                 onChange={(e) => setSkillInput(e.target.value)}
                 onKeyDown={handleSkillKeyDown}
                 placeholder={
-                  skill.length === 0
+                  skills.length === 0
                     ? "Type a skill and hit Enter"
                     : "Add more..."
                 }
-                className="flex-1 min-w-[120px] bg-transparent text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none py-0.5"
+                className="flex-1 min-w-30 bg-transparent text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none py-0.5"
               />
             </div>
             <p className="text-xs text-slate-400 mt-1.5">

@@ -6,19 +6,37 @@ import {
   ExternalLink,
   IndianRupee,
   MapPin,
-  User,
 } from "lucide-react";
-import { useNavigate, useParams } from "react-router-dom";
-import { mockJobs } from "../data/mockJobs";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import useApplications from "../context/useApplication";
+import { useEffect, useState } from "react";
+import type { Job } from "../types/job.types";
+import { fetchJobById } from "../services/jobService";
 
 export default function JobDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-
-  const job = mockJobs.find((j) => j._id === id);
-
   const { isApplied, applyToJob } = useApplications();
+
+  const [job,setJob] = useState<Job | null>(null);
+  const [loading,setLoading] = useState(true);
+
+  useEffect(()=>{
+    if(id) loadJob(id);
+  },[id])
+
+
+  const loadJob = async(jobId:string)=>{
+    try {
+      const data = await fetchJobById(jobId);
+      setJob(data);
+    }catch(err:any){
+      console.log("failed to load Job", err.message);
+    }finally{
+      setLoading(false);
+    }
+  }
+
   const applied = job ? isApplied(job._id) : false;
 
   const handleApply = () => {
@@ -27,6 +45,7 @@ export default function JobDetail() {
     window.open(job.applyLink, "_blank", "noopener,noreferrer");
   };
 
+  
   const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleDateString("en-IN", {
       day: "numeric",
@@ -34,6 +53,25 @@ export default function JobDetail() {
       year: "numeric",
     });
   };
+  
+  if (loading) {
+    return (
+      <div className="max-w-3xl mx-auto px-6 py-20 text-center">
+        <p className="text-slate-500">Loading...</p>
+      </div>
+    );
+  }
+
+  if (!job) {
+    return (
+      <div className="max-w-3xl mx-auto px-6 py-20 text-center">
+        <p className="text-slate-500 mb-4">This job posting doesn't exist.</p>
+        <Link to="/" className="text-indigo-600 font-semibold hover:underline">
+          Back to dashboard
+        </Link>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-slate-50 min-h-[calc(100vh-73px)]">
@@ -78,10 +116,6 @@ export default function JobDetail() {
             <div className="flex items-center gap-1.5">
               <Calendar size={14} />
               Posted {formatDate(job!.createdAt)}
-            </div>
-            <div className="flex items-center gap-1.5">
-              <User size={14} />
-              Shared by {job?.postedBy}
             </div>
           </div>
 

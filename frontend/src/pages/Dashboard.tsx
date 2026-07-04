@@ -1,20 +1,39 @@
 import { GraduationCap } from "lucide-react";
 import JobCard from "../components/jobCard";
-import { mockJobs } from "../data/mockJobs";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import FilterBar from "../components/FilterBar";
+import type { Job } from "../types/job.types";
+import { fetchJobs } from "../services/jobService";
 
 export default function Dashboard() {
+  const [jobs,setJobs] = useState<Job[]>([])
+  const [loading,setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [location, setLocation] = useState("");
 
+  useEffect(()=>{
+    loadJobs();
+  },[])
+
+  const loadJobs = async()=>{
+    try {
+    setLoading(true);
+      const data = await fetchJobs();
+      setJobs(data);
+    }catch(err:any){
+      console.log("faild to fecth jobs",err.message); 
+    }finally{
+      setLoading(false);
+    }
+  };
+
   const locations = useMemo(
-    () => Array.from(new Set(mockJobs.map((job) => job.location))),
+    () => Array.from(new Set(jobs.map((job) => job.location))),
     [],
   );
 
   const filteredJobs = useMemo(() => {
-    return mockJobs.filter((job) => {
+    return jobs.filter((job) => {
       const matchesSearch =
         search === "" ||
         job.title.toLowerCase().includes((search ?? "").toLowerCase()) ||
@@ -24,7 +43,7 @@ export default function Dashboard() {
         const matchesLocation = location === "" || job.location === location;
         return matchesSearch && matchesLocation;
     });
-  }, [search, location]);
+  }, [search, location,jobs]);
 
   return (
     <div className="bg-slate-50 min-h-[calc(100vh-73px)]">
@@ -33,7 +52,7 @@ export default function Dashboard() {
         <div className="inline-flex items-center gap-2 bg-indigo-50 border border-indigo-100 rounded-full px-4 py-1.5 mb-4">
           <GraduationCap size={14} className="text-amber-500" />
           <span className="text-xs font-semibold text-indigo-700 tracking-wide">
-            {mockJobs.length} OPEN ROLES
+            {jobs.length} OPEN ROLES
           </span>
         </div>
         <h1 className="font-display text-3xl font-bold text-slate-900 mb-2">
@@ -53,7 +72,11 @@ export default function Dashboard() {
         />
 
         {/* Job grid */}
-        {filteredJobs.length > 0 ? (
+        {loading ? (
+          <div className="text-center py-20">
+            <p className="text-slate-500">Loading jobs...</p>
+          </div>
+        ): filteredJobs.length > 0 ? (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredJobs.map((job) => (
               <JobCard key={job._id} job={job} />

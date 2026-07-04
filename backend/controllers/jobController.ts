@@ -19,10 +19,10 @@ export const createJob=async(req:Request,res:Response)=>{
 export const getJobs = async(req:Request,res:Response)=>{
     try {
         const {search,location} = req.query;
-
+        
         const filter:any={};
         if(location) filter.location = location;
-
+        
         if (search){
             const regex = new RegExp(search as string, "i");
             filter.$or = [
@@ -31,8 +31,11 @@ export const getJobs = async(req:Request,res:Response)=>{
                 { skills: regex },
             ];
         }
-
+        
+        console.log("this is before calling backend");
         const jobs = await Job.find(filter).sort({createdAt:-1});
+        console.log("this is after calling backend");
+        console.log({jobs});
         res.status(200).json({jobs});
     }catch(err:any){
         res.status(500).json({ message: `Error: ${err.message}` });
@@ -76,7 +79,7 @@ export const deleteJob = async(req:Request,res:Response)=>{
 
         await job.deleteOne();
         res.status(200).json({ message: "Job deleted" });
-    }catch(err){
+    }catch(err:any){
         res.status(500).json({ message: `Error: ${err.message}` });
     }
 }
