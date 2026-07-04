@@ -24,3 +24,7 @@ export const createJob = async(jobData:Omit<Job,"_id" | "postedBy" | "createdAt"
     const res = await axios.post("/api/jobs",jobData);
     return res.data.job ;
 }
+
+export const deleteJob = async(id:string):Promise<void>=>{
+    await axios.delete(`/api/jobs/${id}`);
+}

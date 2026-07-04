@@ -1,43 +1,67 @@
-import {ArrowLeft,Building2,Calendar,Check,ExternalLink,IndianRupee,MapPin,} from "lucide-react";
+import {
+  ArrowLeft,
+  Building2,
+  Calendar,
+  Check,
+  ExternalLink,
+  IndianRupee,
+  MapPin,
+  Trash2,
+} from "lucide-react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import useApplications from "../context/useApplication";
 import { useEffect, useState } from "react";
 import type { Job } from "../types/job.types";
-import { fetchJobById } from "../services/jobService";
+import { fetchJobById, deleteJob } from "../services/jobService";
+import useAuth from "../context/useAuth";
 
 export default function JobDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { isApplied, applyToJob } = useApplications();
+  const { user } = useAuth();
 
-  const [job,setJob] = useState<Job | null>(null);
-  const [loading,setLoading] = useState(true);
+  const [job, setJob] = useState<Job | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  useEffect(()=>{
-    if(id) loadJob(id);
-  },[id])
+  const isOwner = job && user && job.postedBy === user._id;
 
+  useEffect(() => {
+    if (id) loadJob(id);
+  }, [id]);
 
-  const loadJob = async(jobId:string)=>{
+  const loadJob = async (jobId: string) => {
     try {
       const data = await fetchJobById(jobId);
       setJob(data);
-    }catch(err:any){
+    } catch (err: any) {
       console.log("failed to load Job", err.message);
-    }finally{
+    } finally {
       setLoading(false);
     }
-  }
+  };
 
   const applied = job ? isApplied(job._id) : false;
 
-  const handleApply = async() => {
+  const handleApply = async () => {
     if (!job) return;
     await applyToJob(job._id);
     window.open(job.applyLink, "_blank", "noopener,noreferrer");
   };
 
-  
+  const handleDelete = async () => {
+    if (!job) return;
+    const confirmed = window.confirm("Delete this job posting? This can't be undone.");
+    if (!confirmed) return;
+    try {
+      await deleteJob(job._id);
+      navigate("/my-jobs");
+    } catch (err: any) {
+      console.error("Failed to delete job", err);
+      alert("Failed to delete job. Try again.");
+    }
+  };
+
   const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleDateString("en-IN", {
       day: "numeric",
@@ -45,7 +69,7 @@ export default function JobDetail() {
       year: "numeric",
     });
   };
-  
+
   if (loading) {
     return (
       <div className="max-w-3xl mx-auto px-6 py-20 text-center">
@@ -86,34 +110,44 @@ export default function JobDetail() {
               </div>
               <div>
                 <h1 className="font-display text-2xl font-bold text-slate-900">
-                  {job?.title}
+                  {job.title}
                 </h1>
-                <p className="text-slate-600 font-medium">{job?.company}</p>
+                <p className="text-slate-600 font-medium">{job.company}</p>
               </div>
             </div>
+
+            {isOwner && (
+              <button
+                onClick={handleDelete}
+                className="flex items-center gap-1.5 text-sm font-semibold text-red-600 border border-red-200 bg-red-50 hover:bg-red-100 px-4 py-2 rounded-xl transition-colors flex-shrink-0"
+              >
+                <Trash2 size={15} />
+                <span className="hidden sm:inline">Delete</span>
+              </button>
+            )}
           </div>
 
           {/* Meta info */}
           <div className="flex flex-wrap gap-x-6 gap-y-2 mb-6 text-sm text-slate-500">
             <div className="flex items-center gap-1.5">
               <MapPin size={14} />
-              {job?.location}
+              {job.location}
             </div>
-            {job?.salary && (
+            {job.salary && (
               <div className="flex items-center gap-1.5">
                 <IndianRupee size={14} />
-                {job?.salary.replace("₹", "")}
+                {job.salary.replace("₹", "")}
               </div>
             )}
             <div className="flex items-center gap-1.5">
               <Calendar size={14} />
-              Posted {formatDate(job!.createdAt)}
+              Posted {formatDate(job.createdAt)}
             </div>
           </div>
 
           {/* Skills */}
           <div className="flex flex-wrap gap-2 mb-6">
-            {job?.skills.map((skill) => (
+            {job.skills.map((skill) => (
               <span
                 key={skill}
                 className="text-xs font-medium text-indigo-700 bg-indigo-50 px-3 py-1.5 rounded-full"
@@ -153,7 +187,7 @@ export default function JobDetail() {
             Job Description
           </h2>
           <p className="text-slate-600 leading-relaxed whitespace-pre-line">
-            {job?.description}
+            {job.description}
           </p>
         </div>
       </div>

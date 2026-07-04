@@ -3,7 +3,7 @@ import { Briefcase, Plus } from "lucide-react";
 import JobCard from "../components/jobCard";
 import { useEffect, useState } from "react";
 import type { Job } from "../types/job.types";
-import { fetchMyJobs } from "../services/jobService";
+import { deleteJob, fetchMyJobs } from "../services/jobService";
 
 export default function MyJobs(){
   const [myJobs,setMyJobs] = useState<Job[]>([]);
@@ -21,6 +21,18 @@ export default function MyJobs(){
       console.log("failed to load your jobs",err.message);
     }finally{
       setLoading(false);
+    }
+  }
+
+  const handleDelete = async(jobId:string)=>{
+    const confirmed = window.confirm("Delete this job posting? This can't be undone.");
+    if(!confirmed) return ;
+    try{
+      await deleteJob(jobId);
+      setMyJobs((prev)=>prev.filter((job)=>job._id!=jobId));
+    }catch(err:any){
+      console.error("Failed to delete job", err);
+      alert("Failed to delete job. Try again.");
     }
   }
 
@@ -50,7 +62,7 @@ export default function MyJobs(){
         ) : myJobs.length > 0 ? (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {myJobs.map((job) => (
-              <JobCard key={job._id} job={job} />
+              <JobCard key={job._id} job={job} onDelete={handleDelete}/>
             ))}
           </div>
         ) : (
