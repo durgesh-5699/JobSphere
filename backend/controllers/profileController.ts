@@ -18,11 +18,11 @@ export const getMyProfile = async(req:Request,res:Response)=>{
 
 export const updateMyProfile=async(req:Request,res:Response)=>{
     try {
-        const {phone,bio,location,education,experience,skills,linkedin,github,portfolio,} = req.body;
+        const {phone,bio,location,education,experience,projects,skills,linkedin,github,portfolio,} = req.body;
 
         const profile = await Profile.findOneAndUpdate(
             {user:req.user?._id},
-            {phone,bio,location,education,experience,skills,linkedin,github,portfolio},
+            {phone,bio,location,education,experience,projects,skills,linkedin,github,portfolio},
             {new:true, upsert:true}
         );
     res.status(200).json({profile});

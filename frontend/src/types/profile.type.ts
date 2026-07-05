@@ -1,3 +1,10 @@
+export interface Project {
+  title: string;
+  description: string;
+  techStack: string[];
+  link?: string;
+}
+
 export interface Education {
     degree : string;
     institution : string;
@@ -19,6 +26,7 @@ export interface Profile {
   location?: string;
   education: Education[];
   experience: Experience[];
+  projects : Project[];
   skills: string[];
   linkedin?: string;
   github?: string;

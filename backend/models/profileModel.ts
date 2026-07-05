@@ -1,5 +1,12 @@
-import { Document, mongoose, Schema } from 'mongoose';
+import { Document, Schema } from 'mongoose';
+import mongoose from 'mongoose';
 
+interface IProject {
+  title: string;
+  description: string;
+  techStack: string[];
+  link?: string;
+}
 interface IEducation {
     degree : string;
     institution:string;
@@ -13,6 +20,16 @@ interface IExperience{
     description:string;
 }
 
+const projectSchema = new Schema<IProject>(
+  {
+    title: { type: String, required: true },
+    description: { type: String, required: true },
+    techStack: { type: [String], default: [] },
+    link: { type: String },
+  },
+  { _id: false }
+);
+
 export interface IProfile extends Document{
     user : mongoose.Types.ObjectId;
     phone? :string;
@@ -20,6 +37,7 @@ export interface IProfile extends Document{
     location?:string;
     education:IEducation[];
     experience:IExperience[];
+    projects:IProject[];
     skills:string[];
     linkedin?:string;
     github?:string;
@@ -58,6 +76,7 @@ const profileSchema = new Schema<IProfile>(
         location :{type:String},
         education: { type: [educationSchema], default: [] },
         experience: { type: [experienceSchema], default: [] },
+        projects : {type :[projectSchema] , default :[]},
         skills: { type: [String], default: [] },
         linkedin: { type: String },
         github: { type: String },
