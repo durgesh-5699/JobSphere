@@ -75,7 +75,6 @@ export const loginUser = async(req:Request,res:Response)=>{
 }
 
 export const logoutUser=(req:Request,res:Response)=>{
-    console.log("this is also working fine");
     res.cookie("token","",{
         httpOnly:true,
         secure:process.env.NODE_ENV==="production",

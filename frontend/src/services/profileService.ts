@@ -1,5 +1,5 @@
 import axios from "axios";
-import type { Profile } from "../types/profile.type";
+import type { ParsedResumeData, Profile } from "../types/profile.type";
 
 export const fetchMyProfile=async():Promise<Profile>=>{
     const res = await axios.get("/api/profile/me");
@@ -11,12 +11,13 @@ export const updateMyProfile=async(data:Partial<Profile>):Promise<Profile>=>{
     return res.data.profile;
 }
 
-export const uploadResume=async(file:File):Promise<Profile>=>{
+export const uploadResume=async(file:File):Promise<{profile:Profile; parsedData:ParsedResumeData|null}>=>{
     const formData = new FormData();
     formData.append("resume",file);
 
     const res = await axios.post("/api/profile/resume",formData,{
         headers: { "Content-Type": "multipart/form-data" },
     });
-    return res.data.profile;
+    console.log(res.data);
+    return {profile : res.data.profile, parsedData:res.data.parsedData};
 }

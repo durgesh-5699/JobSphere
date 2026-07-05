@@ -18,6 +18,19 @@ export interface Experience {
     description:string;
 }
 
+export interface ParsedResumeData {
+  bio: string;
+  phone: string;
+  location: string;
+  linkedin: string;
+  github: string;
+  portfolio: string;
+  skills: string[];
+  education: { degree: string; institution: string; year: string }[];
+  experience: { role: string; company: string; duration: string; description: string }[];
+  projects: { title: string; description: string; techStack: string[]; link: string }[];
+}
+
 export interface Profile {
   _id: string;
   user: string;

@@ -32,10 +32,7 @@ export const getJobs = async(req:Request,res:Response)=>{
             ];
         }
         
-        console.log("this is before calling backend");
         const jobs = await Job.find(filter).sort({createdAt:-1});
-        console.log("this is after calling backend");
-        console.log({jobs});
         res.status(200).json({jobs});
     }catch(err:any){
         res.status(500).json({ message: `Error: ${err.message}` });
