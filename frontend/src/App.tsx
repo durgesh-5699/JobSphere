@@ -10,6 +10,7 @@ import ProtectedRoutes from "./components/ProtectedRoute";
 import MyJobs from "./pages/MyJob";
 import AppliedJobs from "./pages/AppliedJobs";
 import Profile from "./pages/Profile";
+import ProfilePage from "./pages/Profile";
 
 export default function App() {
   return (
@@ -46,7 +47,7 @@ export default function App() {
           }/>
           <Route path='profile' element={
             <ProtectedRoutes>
-              <Profile />
+              <ProfilePage />
             </ProtectedRoutes>
           }/>
         </Routes>

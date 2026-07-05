@@ -1,4 +1,3 @@
-import { uploadResume } from './../../../backend/controllers/profileController';
 import axios from "axios";
 import type { Profile } from "../types/profile.type";
 
