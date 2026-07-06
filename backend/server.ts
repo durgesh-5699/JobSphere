@@ -9,6 +9,7 @@ import jobRouter from "./routes/jobRoutes.ts";
 import applicationRouter from "./routes/applicationRoutes.ts";
 import aiRouter from "./routes/aiRoutes.ts";
 import profileRouter from "./routes/profileRoutes.ts";
+import roomRouter from "./routes/roomRoutes.ts";
 
 connectDB();
 
@@ -27,6 +28,7 @@ app.use("/api/jobs",jobRouter);
 app.use("/api/applications",applicationRouter);
 app.use("/api/ai",aiRouter);
 app.use("/api/profile",profileRouter);
+app.use("/api/rooms",roomRouter);
 
 const PORT = process.env.PORT;
 app.listen(PORT,()=>{

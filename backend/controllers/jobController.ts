@@ -1,5 +1,6 @@
 import type { Request, Response } from "express";
 import Job from "../models/jobModel";
+import RoomMembership from "../models/roomMembershipModel";
 
 const normalizeUrl=(url:string):string=>{
     try{
@@ -12,9 +13,19 @@ const normalizeUrl=(url:string):string=>{
 
 export const createJob=async(req:Request,res:Response)=>{
     try {
-        const {title,company,description,applyLink,location,skills,salary} = req.body;
-        if(!title || !company || !description || !applyLink || !location || !skills || !salary){
-            return res.status(400).json({message:"please fill all required fields"});
+        const {title,company,description,applyLink,location,skills,salary,room} = req.body;
+        if(!title || !company || !description || !applyLink || !location || !skills || !salary || !room){
+            return res.status(400).json({message:"please fill all required fields, including room"});
+        }
+
+        const membership = await RoomMembership.findOne({
+            room,
+            user:req.user?.id,
+            status:"approved",
+        });
+
+        if(!membership){
+            return res.status(403).json({ message: "You must be a member of this room to post here" });
         }
 
         const normalizedLink = normalizeUrl(applyLink);
@@ -29,7 +40,7 @@ export const createJob=async(req:Request,res:Response)=>{
             })
         }
 
-        const job = await Job.create({title,company,description,applyLink,location,skills : skills || [],salary,postedBy:req.user?._id})
+        const job = await Job.create({title,company,description,applyLink,location,skills : skills || [],salary,postedBy:req.user?._id,room})
 
         res.status(201).json({job});
     }catch(err:any){
@@ -41,7 +52,19 @@ export const getJobs = async(req:Request,res:Response)=>{
     try {
         const {search,location} = req.query;
         
-        const filter:any={};
+        const publicRooms = await RoomMembership.find({isPublic:true}).select("_id");
+        const myApprovedMemberships = await RoomMembership.find({
+            user : req.user?._id,
+            status : "approved",
+        }).select("room");
+
+        const accessibleRoomIds = [
+            ...publicRooms.map((r)=>r._id),
+            ...myApprovedMemberships.map((m)=>m.room)
+        ];
+
+        const filter:any={room : { $in: accessibleRoomIds}};
+        
         if(location) filter.location = location;
         
         if (search){

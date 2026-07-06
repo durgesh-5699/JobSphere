@@ -1,4 +1,4 @@
-import mongoose, { Document } from "mongoose"
+import mongoose, { Document, Schema } from "mongoose"
 
 export interface IJob extends Document{
   title: string;
@@ -9,6 +9,7 @@ export interface IJob extends Document{
   skills: string[];
   salary?: string;
   postedBy: mongoose.Types.ObjectId;
+  room: mongoose.Types.ObjectId;
 }
 
 const jobSchema = new mongoose.Schema<IJob>({
@@ -20,6 +21,7 @@ const jobSchema = new mongoose.Schema<IJob>({
     skills:{type:[String],default:[]},
     salary:{type:String},
     postedBy:{type:mongoose.Schema.Types.ObjectId,ref:"user",required:true},
+    room: {type:Schema.Types.ObjectId, ref:"Room", required:true},
 },{timestamps:true});
 
 const Job = mongoose.model<IJob>("Job",jobSchema);

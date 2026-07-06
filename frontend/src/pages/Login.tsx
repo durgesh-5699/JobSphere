@@ -1,4 +1,4 @@
-import { useState, FormEvent } from "react";
+import { useState, FormEvent, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Mail, Lock, Eye, EyeOff, ArrowRight, GraduationCap } from "lucide-react";
 import useAuth from "../context/useAuth";
@@ -10,8 +10,12 @@ export default function Login(){
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const { login } = useAuth();
+  const { user, login } = useAuth();
   const navigate = useNavigate();
+
+  if(user){
+    navigate(-1);
+  }
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -30,9 +34,7 @@ export default function Login(){
 
   return (
     <div className="grid lg:grid-cols-2 bg-white">
-      {/* Left panel — brand/signature side */}
       <div className="hidden lg:flex relative flex-col justify-between p-12 overflow-hidden bg-gradient-to-br from-indigo-700 via-indigo-600 to-violet-700">
-        {/* subtle grid pattern */}
         <div
           className="absolute inset-0 opacity-[0.07]"
           style={{
@@ -61,7 +63,6 @@ export default function Login(){
   </p>
 </div>
 
-        {/* Floating stat cards — signature element */}
         <div className="relative z-10 grid grid-cols-2 gap-4 max-w-sm">
           <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-4">
             <p className="font-display text-2xl font-bold text-white">2,400+</p>
@@ -80,7 +81,6 @@ export default function Login(){
         </div>
       </div>
 
-      {/* Right panel — form */}
       <div className="flex items-center justify-center px-6 py-10">
         <div className="w-full max-w-sm">
             <span className="inline-block text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full mb-6">
