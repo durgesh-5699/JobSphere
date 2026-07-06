@@ -9,7 +9,7 @@ import {
   X,
 } from "lucide-react";
 import { useState, type FormEvent } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { createJob } from "../services/jobService";
 import { parseJobInput } from "../services/aiService";
 
@@ -40,6 +40,8 @@ export default function PostJob() {
   const [rawText,setRawText] = useState("");
   const [aiLoading,setAiLoading] = useState(false);
   const [aiError,setAiError] = useState("");
+
+  const [duplicateJobId,setDuplicateJobId] = useState<string | null>(null);
 
   const navigate = useNavigate();
 
@@ -93,19 +95,25 @@ export default function PostJob() {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError("");
+    setDuplicateJobId(null);
 
     if (skills.length === 0) {
       setError("Add at least one skill.");
       return;
     }
     setLoading(true);
-    try {
+    try{
       await createJob({...formData,skills});
       navigate("/");
-    } catch(err:any){
-      setError(err.response?.data?.message || "Failed to post job. Try again.");
-    } finally {
-       setLoading(false);
+    }catch(err:any){
+      if(err.response?.status === 409 && err.response?.data?.existingJobId){
+        setError(`This job is already posted on jobSphere. View it in the dashboard.`);
+        setDuplicateJobId(err.response.data.existingJobId);
+      }else{
+        setError(err.response?.data?.message || "Failed to post job. Try again.");
+      }
+    }finally{
+      setLoading(false);
     }
   };
 
@@ -158,8 +166,16 @@ export default function PostJob() {
         </div>
         
         {error && (
-          <div className="mb-5 text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg px-4 py-2.5">
-            {error}
+          <div className="mb-5 text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg px-4 py-2.5 flex items-center justify-between gap-3">
+            <span>{error}</span>
+            {duplicateJobId && (
+              <Link
+                to={`/jobs/${duplicateJobId}`}
+                className="font-semibold text-red-700 hover:underline whitespace-nowrap"
+              >
+                View here →
+              </Link>
+            )}
           </div>
         )}
 
