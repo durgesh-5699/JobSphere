@@ -76,7 +76,7 @@ export const updateMyProfile=async(req:Request,res:Response)=>{
     }
 }
 
-export const uploadResume = async(req:Request,res:Response)=>{
+export const uploadResume = async(req:Request,res:Response)=> {
     try{
         if(!req.file){
             return res.status(400).json({ message: "Please upload a PDF file" });
@@ -85,11 +85,12 @@ export const uploadResume = async(req:Request,res:Response)=>{
         const fileBuffer = req.file.buffer ;
 
         console.log("before upload result");
-        const uploadResult = await new Promise<any>((resolve,reject)=>{
+        const uploadResult = await new Promise<any>((resolve,reject)=> {
             const stream = cloudinary.uploader.upload_stream({
-                resource_type: "raw",
+                resource_type: "image",
                 folder : "jobSphere-resumes",
                 public_id : `resume-${req.user?._id}-${Date.now()}`,
+                format : "pdf",
             },
             (error,result)=> {
                 if(error){
