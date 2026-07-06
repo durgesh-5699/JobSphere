@@ -83,7 +83,7 @@ export default function Register(){
       <div className="flex items-center justify-center px-6 py-8">
         <div className="w-full max-w-sm">
           <span className="inline-block text-xs font-bold text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full mb-6">
-            CampusHire
+            jobSphere
           </span>
 
           <h2 className="font-display text-3xl font-bold text-slate-900 mb-2">

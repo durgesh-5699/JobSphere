@@ -41,10 +41,10 @@ export default function Footer(){
 
           {/* Right */}
           <div className="flex items-center justify-center md:justify-end gap-4">
-            <p className="text-xs text-slate-500">© {year} CampusHire</p>
+            <p className="text-xs text-slate-500">© {year} jobSphere</p>
 
             <a
-              href="mailto:hello@campushire.com"
+              href="mailto:hello@jobSphere.com"
               aria-label="Email"
               className="text-slate-500 hover:text-slate-900 transition-colors"
             >

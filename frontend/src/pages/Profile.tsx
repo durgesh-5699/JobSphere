@@ -252,7 +252,7 @@ export default function ProfilePage(){
     <div className="bg-slate-50 min-h-[calc(100vh-73px)]">
       <div className="max-w-3xl mx-auto px-6 py-10">
         <span className="inline-block text-xs font-bold text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full mb-4">
-          CampusHire
+          jobSphere
         </span>
 
         {error && (

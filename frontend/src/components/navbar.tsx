@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation, } from "react-router-dom";
 import {
   LayoutDashboard,
   Briefcase,
@@ -18,9 +18,17 @@ export default function Navbar(){
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
-
+  
   const closeMobileMenu = () => setMobileMenuOpen(false);
   const closeUserMenu = () => setUserMenuOpen(false);
+  
+  const location = useLocation();
+  const navItemClass = (path: string) =>
+  `flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
+    location.pathname === path
+      ? "bg-indigo-50 text-indigo-600 font-semibold"
+      : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+  }`;
 
   useEffect(()=>{
     const handleClickOutside=(e: MouseEvent)=>{
@@ -33,32 +41,41 @@ export default function Navbar(){
   }, []);
 
   return (
-    <nav className="bg-white border-b border-slate-200 relative">
-      <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+      <nav className="sticky top-0 z-50 backdrop-blur-xl bg-white/80 border-b border-slate-200/80 shadow-sm">      <div className="max-w-7xl mx-auto h-20 px-6 flex items-center justify-between">
         <Link
           to="/"
-          className="font-display font-extrabold text-xl tracking-tight"
           onClick={closeMobileMenu}
+          className="group flex items-center gap-3 transition-all duration-300"
         >
-          <span className="text-slate-900">job</span>
-          <span className="text-indigo-600">Sphere</span>
+          <img
+            src="/Logo.png"
+            alt="JobSphere"
+            className="w-11 h-11 rounded-full object-cover shadow-md transition-all duration-300 group-hover:scale-105 group-hover:rotate-6"
+          />
+
+          <div className="leading-tight">
+            <h1 className="font-black text-2xl tracking-tight transition-colors">
+              <span className="text-slate-900">job</span>
+              <span className="text-indigo-600">Sphere</span>
+            </h1>
+          </div>
         </Link>
 
-        <div className="hidden md:flex items-center gap-8">
+        <div className="hidden md:flex items-center gap-2">
           <Link
             to="/"
-            className="flex items-center gap-1.5 text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors"
+            className={navItemClass("/")}
           >
-            <LayoutDashboard size={16} />
+            <LayoutDashboard size={17} />
             Dashboard
           </Link>
 
           {user && (
             <Link
               to="/post-job"
-              className="flex items-center gap-1.5 text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors"
+              className={navItemClass("/post-job")}
             >
-              <Briefcase size={16} />
+              <Briefcase size={17} />
               Post a Job
             </Link>
           )}
@@ -69,7 +86,7 @@ export default function Navbar(){
             <div className="relative" ref={userMenuRef}>
               <button
                 onClick={() => setUserMenuOpen(!userMenuOpen)}
-                className="flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-full bg-slate-50 hover:bg-slate-100 border border-slate-200 transition-colors"
+                className="flex items-center gap-2 pl-2 pr-3 py-2 rounded-full bg-white border border-slate-200 shadow-sm hover:shadow-md hover:bg-slate-50 transition-all duration-300 cursor-pointer"
               >
                 <div className="w-7 h-7 rounded-full bg-indigo-600 text-white flex items-center justify-center text-xs font-bold">
                   {user.name.charAt(0).toUpperCase()}
@@ -83,24 +100,21 @@ export default function Navbar(){
                   <Link
                     to="/profile"
                     onClick={closeUserMenu}
-                    className="flex items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors"
-                  >
+                    className={`flex items-center gap-2.5 px-4 py-2.5 rounded-lg mx-2 text-sm font-medium transition-all ${location.pathname === "/profile"? "bg-indigo-50 text-indigo-600": "text-slate-700 hover:bg-slate-50"}`}                  >
                     <UserCircle size={16} className="text-slate-400" />
                     My Profile
                   </Link>
                   <Link
                     to="/my-jobs"
                     onClick={closeUserMenu}
-                    className="flex items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors"
-                  >
+                    className={`flex items-center gap-2.5 px-4 py-2.5 rounded-lg mx-2 text-sm font-medium transition-all ${location.pathname === "/my-jobs"? "bg-indigo-50 text-indigo-600": "text-slate-700 hover:bg-slate-50"}`}>
                     <Briefcase size={16} className="text-slate-400" />
                     My Jobs
                   </Link>
                   <Link
                     to="/applied-jobs"
                     onClick={closeUserMenu}
-                    className="flex items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors"
-                  >
+                    className={`flex items-center gap-2.5 px-4 py-2.5 rounded-lg mx-2 text-sm font-medium transition-all ${location.pathname === "/applied-jobs"? "bg-indigo-50 text-indigo-600": "text-slate-700 hover:bg-slate-50"}`}>
                     <Send size={16} className="text-slate-400" />
                     Applied Jobs
                   </Link>
@@ -124,13 +138,13 @@ export default function Navbar(){
             <>
               <Link
                 to="/login"
-                className="text-sm font-semibold text-slate-700 hover:text-slate-900 px-4 py-2 transition-colors"
+                className="px-5 py-2.5 rounded-xl text-sm font-semibold text-slate-700 hover:bg-slate-100 transition-all"
               >
                 Log in
               </Link>
               <Link
                 to="/register"
-                className="text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 px-5 py-2.5 rounded-full transition-colors shadow-sm shadow-indigo-200"
+                className="px-5 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-semibold shadow-lg shadow-indigo-200 hover:bg-indigo-700 hover:scale-105 transition-all duration-300"
               >
                 Sign up
               </Link>
