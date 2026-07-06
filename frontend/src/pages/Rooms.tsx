@@ -1,10 +1,16 @@
 import { useState, useEffect, type FormEvent } from "react";
 import { Plus, Lock, Globe, X } from "lucide-react";
-import { fetchPublicRooms, fetchMyRooms, createRoom } from "../services/roomService";
+import {
+  fetchPublicRooms,
+  fetchMyRooms,
+  createRoom,
+} from "../services/roomService";
 import type { Room } from "../types/room.types";
 import RoomCard from "../components/roomCard";
+import { Search } from "lucide-react";
+import { searchRooms } from "../services/roomService";
 
-export default function Rooms(){
+export default function Rooms() {
   const [publicRooms, setPublicRooms] = useState<Room[]>([]);
   const [myRooms, setMyRooms] = useState<Room[]>([]);
   const [loading, setLoading] = useState(true);
@@ -16,14 +22,42 @@ export default function Rooms(){
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState("");
 
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<Room[]>([]);
+  const [searching, setSearching] = useState(false);
+
   useEffect(() => {
     loadRooms();
   }, []);
 
+  useEffect(() => {
+    if (searchQuery.trim().length < 2) {
+      setSearchResults([]);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      setSearching(true);
+      try {
+        const results = await searchRooms(searchQuery);
+        setSearchResults(results);
+      } catch (err) {
+        console.error("Search failed", err);
+      } finally {
+        setSearching(false);
+      }
+    }, 400);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
   const loadRooms = async () => {
     try {
       setLoading(true);
-      const [pub, mine] = await Promise.all([fetchPublicRooms(), fetchMyRooms()]);
+      const [pub, mine] = await Promise.all([
+        fetchPublicRooms(),
+        fetchMyRooms(),
+      ]);
       setPublicRooms(pub);
       setMyRooms(mine);
     } catch (err) {
@@ -62,9 +96,12 @@ export default function Rooms(){
       <div className="max-w-4xl mx-auto px-6 py-10">
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="font-display text-3xl font-bold text-slate-900 mb-2">Rooms</h1>
+            <h1 className="font-display text-3xl font-bold text-slate-900 mb-2">
+              Rooms
+            </h1>
             <p className="text-slate-500">
-              Join a room to see jobs shared with that group, or create your own.
+              Join a room to see jobs shared with that group, or create your
+              own.
             </p>
           </div>
           <button
@@ -76,12 +113,56 @@ export default function Rooms(){
           </button>
         </div>
 
+        {/* Search bar */}
+        <div className="relative mb-8">
+          <Search
+            size={18}
+            className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
+          />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search rooms by name..."
+            className="w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+          />
+        </div>
+
+        {/* Search results (agar query hai to ye dikhao, warna My Rooms/Discover dikhao) */}
+        {searchQuery.trim().length >= 2 ? (
+          <div className="mb-8">
+            <h2 className="font-display font-bold text-slate-900 mb-4">
+              Search results for "{searchQuery}"
+            </h2>
+            {searching ? (
+              <p className="text-slate-500 text-sm">Searching...</p>
+            ) : searchResults.length > 0 ? (
+              <div className="grid sm:grid-cols-2 gap-4">
+                {searchResults.map((room) => (
+                  <RoomCard
+                    key={room._id}
+                    room={room}
+                    isMember={myRoomIds.has(room._id)}
+                  />
+                ))}
+              </div>
+            ) : (
+              <p className="text-slate-400 italic text-sm">No rooms found.</p>
+            )}
+          </div>
+        ) : (
+          <>
+          </>
+        )}
+
         {loading ? (
           <p className="text-slate-500 text-center py-20">Loading rooms...</p>
         ) : (
           <>
             <div className="mb-8">
-              <h2 className="font-display font-bold text-slate-900 mb-4">My Rooms</h2>
+              <h2 className="font-display font-bold text-slate-900 mb-4">
+                My Rooms
+              </h2>
               {myRooms.length > 0 ? (
                 <div className="grid sm:grid-cols-2 gap-4">
                   {myRooms.map((room) => (
@@ -89,12 +170,16 @@ export default function Rooms(){
                   ))}
                 </div>
               ) : (
-                <p className="text-slate-400 italic text-sm">You haven't joined any rooms yet.</p>
+                <p className="text-slate-400 italic text-sm">
+                  You haven't joined any rooms yet.
+                </p>
               )}
             </div>
 
             <div>
-              <h2 className="font-display font-bold text-slate-900 mb-4">Discover Public Rooms</h2>
+              <h2 className="font-display font-bold text-slate-900 mb-4">
+                Discover Public Rooms
+              </h2>
               {publicRooms.filter((r) => !myRoomIds.has(r._id)).length > 0 ? (
                 <div className="grid sm:grid-cols-2 gap-4">
                   {publicRooms
@@ -104,7 +189,9 @@ export default function Rooms(){
                     ))}
                 </div>
               ) : (
-                <p className="text-slate-400 italic text-sm">No new public rooms to discover.</p>
+                <p className="text-slate-400 italic text-sm">
+                  No new public rooms to discover.
+                </p>
               )}
             </div>
           </>
@@ -121,7 +208,9 @@ export default function Rooms(){
               <X size={20} />
             </button>
 
-            <h2 className="font-display text-xl font-bold text-slate-900 mb-5">Create a Room</h2>
+            <h2 className="font-display text-xl font-bold text-slate-900 mb-5">
+              Create a Room
+            </h2>
 
             {error && (
               <div className="mb-4 text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg px-4 py-2.5">
@@ -189,4 +278,4 @@ export default function Rooms(){
       )}
     </div>
   );
-};
+}

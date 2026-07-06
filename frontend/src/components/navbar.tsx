@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Link, useLocation, } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import {
   LayoutDashboard,
   Briefcase,
@@ -10,29 +10,33 @@ import {
   UserCircle,
   LogOut,
   ChevronDown,
+  Users,
 } from "lucide-react";
 import useAuth from "../context/useAuth";
 
-export default function Navbar(){
+export default function Navbar() {
   const { user, logout } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
-  
+
   const closeMobileMenu = () => setMobileMenuOpen(false);
   const closeUserMenu = () => setUserMenuOpen(false);
-  
+
   const location = useLocation();
   const navItemClass = (path: string) =>
-  `flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
-    location.pathname === path
-      ? "bg-indigo-50 text-indigo-600 font-semibold"
-      : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
-  }`;
+    `flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
+      location.pathname === path
+        ? "bg-indigo-50 text-indigo-600 font-semibold"
+        : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+    }`;
 
-  useEffect(()=>{
-    const handleClickOutside=(e: MouseEvent)=>{
-      if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) {
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        userMenuRef.current &&
+        !userMenuRef.current.contains(e.target as Node)
+      ) {
         setUserMenuOpen(false);
       }
     };
@@ -41,7 +45,9 @@ export default function Navbar(){
   }, []);
 
   return (
-      <nav className="sticky top-0 z-50 backdrop-blur-xl bg-white/80 border-b border-slate-200/80 shadow-sm">      <div className="max-w-7xl mx-auto h-20 px-6 flex items-center justify-between">
+    <nav className="sticky top-0 z-50 backdrop-blur-xl bg-white/80 border-b border-slate-200/80 shadow-sm">
+      {" "}
+      <div className="max-w-7xl mx-auto h-20 px-6 flex items-center justify-between">
         <Link
           to="/"
           onClick={closeMobileMenu}
@@ -62,23 +68,26 @@ export default function Navbar(){
         </Link>
 
         <div className="hidden md:flex items-center gap-2">
-          <Link
-            to="/"
-            className={navItemClass("/")}
-          >
+          <Link to="/" className={navItemClass("/")}>
             <LayoutDashboard size={17} />
             Dashboard
           </Link>
 
           {user && (
-            <Link
-              to="/post-job"
-              className={navItemClass("/post-job")}
-            >
+            <Link to="/post-job" className={navItemClass("/post-job")}>
               <Briefcase size={17} />
               Post a Job
             </Link>
           )}
+
+          <Link
+            to="/rooms"
+            onClick={closeUserMenu}
+            className="flex items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors"
+          >
+            <Users size={16} className="text-slate-400" />
+            Rooms
+          </Link>
         </div>
 
         <div className="hidden md:flex items-center gap-3">
@@ -91,7 +100,9 @@ export default function Navbar(){
                 <div className="w-7 h-7 rounded-full bg-indigo-600 text-white flex items-center justify-center text-xs font-bold">
                   {user.name.charAt(0).toUpperCase()}
                 </div>
-                <span className="text-sm font-medium text-slate-700">{user.name}</span>
+                <span className="text-sm font-medium text-slate-700">
+                  {user.name}
+                </span>
                 <ChevronDown size={14} className="text-slate-400" />
               </button>
 
@@ -100,21 +111,24 @@ export default function Navbar(){
                   <Link
                     to="/profile"
                     onClick={closeUserMenu}
-                    className={`flex items-center gap-2.5 px-4 py-2.5 rounded-lg mx-2 text-sm font-medium transition-all ${location.pathname === "/profile"? "bg-indigo-50 text-indigo-600": "text-slate-700 hover:bg-slate-50"}`}                  >
+                    className={`flex items-center gap-2.5 px-4 py-2.5 rounded-lg mx-2 text-sm font-medium transition-all ${location.pathname === "/profile" ? "bg-indigo-50 text-indigo-600" : "text-slate-700 hover:bg-slate-50"}`}
+                  >
                     <UserCircle size={16} className="text-slate-400" />
                     My Profile
                   </Link>
                   <Link
                     to="/my-jobs"
                     onClick={closeUserMenu}
-                    className={`flex items-center gap-2.5 px-4 py-2.5 rounded-lg mx-2 text-sm font-medium transition-all ${location.pathname === "/my-jobs"? "bg-indigo-50 text-indigo-600": "text-slate-700 hover:bg-slate-50"}`}>
+                    className={`flex items-center gap-2.5 px-4 py-2.5 rounded-lg mx-2 text-sm font-medium transition-all ${location.pathname === "/my-jobs" ? "bg-indigo-50 text-indigo-600" : "text-slate-700 hover:bg-slate-50"}`}
+                  >
                     <Briefcase size={16} className="text-slate-400" />
                     My Jobs
                   </Link>
                   <Link
                     to="/applied-jobs"
                     onClick={closeUserMenu}
-                    className={`flex items-center gap-2.5 px-4 py-2.5 rounded-lg mx-2 text-sm font-medium transition-all ${location.pathname === "/applied-jobs"? "bg-indigo-50 text-indigo-600": "text-slate-700 hover:bg-slate-50"}`}>
+                    className={`flex items-center gap-2.5 px-4 py-2.5 rounded-lg mx-2 text-sm font-medium transition-all ${location.pathname === "/applied-jobs" ? "bg-indigo-50 text-indigo-600" : "text-slate-700 hover:bg-slate-50"}`}
+                  >
                     <Send size={16} className="text-slate-400" />
                     Applied Jobs
                   </Link>
@@ -160,7 +174,6 @@ export default function Navbar(){
           {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
         </button>
       </div>
-
       {mobileMenuOpen && (
         <div className="md:hidden absolute top-full left-0 right-0 bg-white border-b border-slate-200 shadow-lg z-40">
           <div className="px-6 py-4 flex flex-col gap-1">
@@ -253,4 +266,4 @@ export default function Navbar(){
       )}
     </nav>
   );
-};
+}

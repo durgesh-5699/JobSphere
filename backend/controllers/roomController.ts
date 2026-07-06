@@ -104,7 +104,7 @@ export const getPendingRequest = async(req:Request,res:Response)=>{
 
        const requests = await RoomMembership.find({
         room : room._id,
-        status : "pending,
+        status : "pending",
        }).populate("user","name email");
        res.status(200).json({requests});
     }catch(err:any){
@@ -138,3 +138,21 @@ export const respondToRequest = async(req:Request,res:Response)=>{
         res.status(500).json({ message: `Error: ${err.message}` });
     }
 }
+
+// @route GET /api/rooms/search?q=...
+export const searchRooms = async (req: Request, res: Response) => {
+  try {
+    const { q } = req.query;
+
+    if (!q || (q as string).trim().length < 1) {
+      return res.status(200).json({ rooms: [] });
+    }
+
+    const regex = new RegExp((q as string).trim(), "i");
+    const rooms = await Room.find({ name: regex }).limit(15).sort({ createdAt: -1 });
+
+    res.status(200).json({ rooms });
+  } catch (err: any) {
+    res.status(500).json({ message: `Error: ${err.message}` });
+  }
+};

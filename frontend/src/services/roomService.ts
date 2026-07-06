@@ -17,7 +17,7 @@ export const fetchPublicRooms = async (): Promise<Room[]> => {
 };
 
 export const fetchMyRooms = async():Promise<Room[]>=>{
-    const res = await axios.get("api/room/mine");
+    const res = await axios.get("api/rooms/mine");
     return res.data.rooms ;
 }
 
@@ -43,4 +43,9 @@ export const respondToRequest = async (
   action: "approve" | "reject"
 ): Promise<void> => {
   await axios.patch(`/api/rooms/${roomId}/requests/${membershipId}`, { action });
+};
+
+export const searchRooms = async (query: string): Promise<Room[]> => {
+  const res = await axios.get("/api/rooms/search", { params: { q: query } });
+  return res.data.rooms;
 };

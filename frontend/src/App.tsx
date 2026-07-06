@@ -9,8 +9,9 @@ import Footer from "./components/footer";
 import ProtectedRoutes from "./components/ProtectedRoute";
 import MyJobs from "./pages/MyJob";
 import AppliedJobs from "./pages/AppliedJobs";
-import Profile from "./pages/Profile";
 import ProfilePage from "./pages/Profile";
+import Rooms from "./pages/Rooms";
+import RoomDetails from "./pages/RoomDetails";
 
 export default function App() {
   return (
@@ -18,41 +19,83 @@ export default function App() {
       <Navbar />
       <main className="flex-1">
         <Routes>
-          <Route path='/'  element={
-            <ProtectedRoutes>
-              <Dashboard />
-            </ProtectedRoutes>
-          }/>
+          <Route
+            path="/"
+            element={
+              <ProtectedRoutes>
+                <Dashboard />
+              </ProtectedRoutes>
+            }
+          />
+
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          <Route path='/jobs/:id' element={
-            <ProtectedRoutes>
-              <JobDetail />
-            </ProtectedRoutes>
-          }/>
-          <Route path="/post-job" element={
-            <ProtectedRoutes>
-              <PostJob />
-            </ProtectedRoutes>
-          } />
-          <Route path='my-jobs' element={
-            <ProtectedRoutes>
-              <MyJobs />
-            </ProtectedRoutes>
-          } />
-          <Route path='/applied-jobs' element={
-            <ProtectedRoutes>
-              <AppliedJobs />
-            </ProtectedRoutes>
-          }/>
-          <Route path='profile' element={
-            <ProtectedRoutes>
-              <ProfilePage />
-            </ProtectedRoutes>
-          }/>
+
+          <Route
+            path="/jobs/:id"
+            element={
+              <ProtectedRoutes>
+                <JobDetail />
+              </ProtectedRoutes>
+            }
+          />
+
+          <Route
+            path="/post-job"
+            element={
+              <ProtectedRoutes>
+                <PostJob />
+              </ProtectedRoutes>
+            }
+          />
+
+          <Route
+            path="/my-jobs"
+            element={
+              <ProtectedRoutes>
+                <MyJobs />
+              </ProtectedRoutes>
+            }
+          />
+
+          <Route
+            path="/applied-jobs"
+            element={
+              <ProtectedRoutes>
+                <AppliedJobs />
+              </ProtectedRoutes>
+            }
+          />
+
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoutes>
+                <ProfilePage />
+              </ProtectedRoutes>
+            }
+          />
+
+          <Route
+            path="/rooms"
+            element={
+              <ProtectedRoutes>
+                <Rooms />
+              </ProtectedRoutes>
+            }
+          />
+
+          <Route
+            path="/rooms/:id"
+            element={
+              <ProtectedRoutes>
+                <RoomDetails />
+              </ProtectedRoutes>
+            }
+          />
         </Routes>
       </main>
-      <Footer/>
+      <Footer />
     </div>
   );
 }
