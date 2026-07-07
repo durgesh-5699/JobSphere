@@ -1,9 +1,19 @@
-import { GraduationCap } from "lucide-react";
+import { GraduationCap, SearchX } from "lucide-react";
+import { motion } from "framer-motion";
 import JobCard from "../components/jobCard";
 import { useEffect, useMemo, useState } from "react";
 import FilterBar from "../components/FilterBar";
 import type { Job } from "../types/job.types";
 import { fetchJobs } from "../services/jobService";
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 14 },
+  show: (i: number = 0) => ({
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.4, delay: Math.min(i, 8) * 0.05, ease: [0.22, 1, 0.36, 1] },
+  }),
+};
 
 export default function Dashboard() {
   const [jobs,setJobs] = useState<Job[]>([])
@@ -29,7 +39,7 @@ export default function Dashboard() {
 
   const locations = useMemo(
     () => Array.from(new Set(jobs.map((job) => job.location))),
-    [],
+    [jobs],
   );
 
   const filteredJobs = useMemo(() => {
@@ -46,46 +56,70 @@ export default function Dashboard() {
   }, [search, location,jobs]);
 
   return (
-    <div className="bg-slate-50 min-h-[calc(100vh-73px)]">
+    <div className="bg-[#F6F5F2] min-h-[calc(100vh-73px)]">
       <div className="max-w-7xl mx-auto px-6 py-10">
-        {/* Header */}
-        <div className="inline-flex items-center gap-2 bg-indigo-50 border border-indigo-100 rounded-full px-4 py-1.5 mb-4">
-          <GraduationCap size={14} className="text-amber-500" />
-          <span className="text-xs font-semibold text-indigo-700 tracking-wide">
-            {jobs.length} OPEN ROLES
-          </span>
-        </div>
-        <h1 className="font-display text-3xl font-bold text-slate-900 mb-2">
-          Openings shared by your Friends
-        </h1>
-        <p className="text-slate-500 mb-8">
-          Spotted by students, verified before it hits the board.
-        </p>
+        <motion.div variants={fadeUp} initial="hidden" animate="show" custom={0}>
+          <div className="inline-flex items-center gap-2 bg-[#FBF3E3] border border-[#EADFC4] rounded-full px-4 py-1.5 mb-4">
+            <GraduationCap size={13} className="text-[#C08B2C]" />
+            <span className="font-mono text-[11px] font-semibold text-[#8A6316] tracking-[0.1em]">
+              {jobs.length} OPEN ROLES
+            </span>
+          </div>
+          <h1 className="font-display text-3xl font-semibold text-[#12151C] tracking-tight mb-2">
+            Openings shared by your friends
+          </h1>
+          <p className="text-[#12151C]/55 mb-8">
+            Spotted by students, verified before it hits the board.
+          </p>
+        </motion.div>
 
-        {/* Filters */}
-        <FilterBar
-          search={search!}
-          setSearch={setSearch}
-          location={location!}
-          setLocation={setLocation}
-          locations={locations}
-        />
+        <motion.div variants={fadeUp} initial="hidden" animate="show" custom={1}>
+          <FilterBar
+            search={search!}
+            setSearch={setSearch}
+            location={location!}
+            setLocation={setLocation}
+            locations={locations}
+          />
+        </motion.div>
 
-        {/* Job grid */}
         {loading ? (
-          <div className="text-center py-20">
-            <p className="text-slate-500">Loading jobs...</p>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-2">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div
+                key={i}
+                className="h-44 rounded-2xl bg-white border border-[#E4E2DC] overflow-hidden relative"
+              >
+                <div className="absolute inset-0 -translate-x-full animate-[shimmer_1.4s_infinite] bg-gradient-to-r from-transparent via-[#F6F5F2] to-transparent" />
+              </div>
+            ))}
+            <style>{`@keyframes shimmer { 100% { transform: translateX(100%); } }`}</style>
           </div>
         ): filteredJobs.length > 0 ? (
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredJobs.map((job) => (
-              <JobCard key={job._id} job={job} />
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-2">
+            {filteredJobs.map((job, i) => (
+              <motion.div
+                key={job._id}
+                variants={fadeUp}
+                initial="hidden"
+                animate="show"
+                custom={i}
+              >
+                <JobCard job={job} />
+              </motion.div>
             ))}
           </div>
         ) : (
-          <div className="text-center py-20">
-            <p className="text-slate-500">No roles match your search.</p>
-          </div>
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}
+            className="flex flex-col items-center justify-center text-center py-24"
+          >
+            <div className="w-12 h-12 rounded-full bg-[#EAF1EE] flex items-center justify-center mb-4">
+              <SearchX size={20} className="text-[#2F5D50]" />
+            </div>
+            <p className="font-display font-semibold text-[#12151C] mb-1">No roles match your search</p>
+            <p className="text-sm text-[#12151C]/45">Try clearing a filter or searching a different skill.</p>
+          </motion.div>
         )}
       </div>
     </div>

@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { useEffect, useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { AnimatePresence, motion } from "framer-motion";
 import { createJob } from "../services/jobService";
 import { parseJobInput } from "../services/aiService";
 import { fetchMyRooms, fetchPublicRooms } from "../services/roomService";
@@ -23,6 +24,20 @@ interface JobFormData {
   location: string;
   salary: string;
 }
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 14 },
+  show: (i: number = 0) => ({
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.45, delay: i * 0.07, ease: [0.22, 1, 0.36, 1] },
+  }),
+};
+
+const fieldClass =
+  "w-full pl-10 pr-4 py-2.5 bg-[#F6F5F2] border border-[#E4E2DC] rounded-xl text-sm text-[#12151C] placeholder:text-[#12151C]/30 focus:outline-none focus:ring-2 focus:ring-[#2F5D50]/40 focus:border-[#2F5D50] transition-shadow";
+
+const labelClass = "block text-sm font-medium text-[#12151C]/70 mb-1.5";
 
 export default function PostJob() {
   const [formData, setFormData] = useState<JobFormData>({
@@ -55,7 +70,6 @@ export default function PostJob() {
     Promise.all([fetchPublicRooms(), fetchMyRooms()])
       .then(([pub, mine]) => {
         setPublicRooms(pub);
-        // My private rooms — public wale duplicate na ho isliye filter kiya
         setMyRooms(mine.filter((r) => !r.isPublic));
       })
       .catch(console.error);
@@ -90,6 +104,8 @@ export default function PostJob() {
       return;
     }
 
+    setAiError("");
+    setAiLoading(true);
     try{
       const parsed = await parseJobInput(rawText);
       setFormData({
@@ -134,81 +150,104 @@ export default function PostJob() {
   };
 
   return (
-    <div className="bg-slate-50 min-h-[calc(100vh-73px)]">
+    <div className="bg-[#F6F5F2] min-h-[calc(100vh-73px)]">
       <div className="max-w-2xl mx-auto px-6 py-10">
-        <span className="inline-block text-xs font-bold text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full mb-4">
-          jobSphere
-        </span>
-        <h1 className="font-display text-3xl font-bold text-slate-900 mb-2">
-          Share an opening
-        </h1>
-        <p className="text-slate-500 mb-8">
-          Spotted a role? Post it so your batchmates don't miss it.
-        </p>
+        <motion.div variants={fadeUp} initial="hidden" animate="show" custom={0}>
+          <span className="inline-flex items-center gap-2 font-mono text-[11px] font-semibold tracking-[0.2em] uppercase text-[#2F5D50] mb-4">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#2F5D50]" />
+            jobSphere
+          </span>
+          <h1 className="font-display text-3xl font-semibold text-[#12151C] tracking-tight mb-2">
+            Share an opening
+          </h1>
+          <p className="text-[#12151C]/55 mb-8">
+            Spotted a role? Post it so your batchmates don't miss it.
+          </p>
+        </motion.div>
 
-        {/* AI Auto-fill box */}
-        <div className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 mb-6">
+        <motion.div
+          variants={fadeUp} initial="hidden" animate="show" custom={1}
+          className="relative bg-white border border-[#E4E2DC] rounded-2xl p-6 sm:p-8 mb-6 overflow-hidden"
+        >
+          <div className="absolute top-0 left-0 w-full h-[3px] bg-gradient-to-r from-[#2F5D50] via-[#C08B2C] to-[#2F5D50]" />
           <div className="flex items-center gap-2 mb-3">
-            <Sparkles size={18} className="text-amber-500" />
-            <h2 className="font-display font-bold text-slate-900">Auto-fill with AI</h2>
+            <Sparkles size={16} className="text-[#C08B2C]" />
+            <h2 className="font-display font-semibold text-[#12151C] tracking-tight">Auto-fill with AI</h2>
           </div>
-          <p className="text-sm text-slate-500 mb-4">
+          <p className="text-sm text-[#12151C]/55 mb-4">
             Paste the job info you found, or just paste the job link — AI will
             fill the form below for you.
           </p>
 
-          {aiError && (
-            <div className="mb-4 text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg px-4 py-2.5">
-              {aiError}
-            </div>
-          )}
+          <AnimatePresence>
+            {aiError && (
+              <motion.div
+                initial={{ opacity: 0, height: 0, marginBottom: 0 }}
+                animate={{ opacity: 1, height: "auto", marginBottom: 16 }}
+                exit={{ opacity: 0, height: 0, marginBottom: 0 }}
+                className="overflow-hidden"
+              >
+                <div className="text-sm text-[#8C2F26] bg-[#FBEAE8] border border-[#F0CFC9] rounded-lg px-4 py-2.5">
+                  {aiError}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
            <textarea
             value={rawText}
             onChange={(e) => setRawText(e.target.value)}
             rows={5}
             placeholder="Paste raw job text, or paste a job posting link (e.g. https://company.com/careers/role)"
-            className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all resize-none mb-3"
+            className="w-full px-4 py-3 bg-[#F6F5F2] border border-[#E4E2DC] rounded-xl text-sm text-[#12151C] placeholder:text-[#12151C]/30 focus:outline-none focus:ring-2 focus:ring-[#2F5D50]/40 focus:border-[#2F5D50] transition-shadow resize-none mb-3"
           />
 
           <button
             type="button"
             onClick={handleAutoFill}
             disabled={aiLoading}
-            className="flex items-center gap-2 bg-amber-400 hover:bg-amber-500 text-slate-900 font-semibold text-sm px-5 py-2.5 rounded-xl transition-colors disabled:opacity-50"
+            className="flex items-center gap-2 bg-[#12151C] hover:bg-[#2F5D50] text-white font-medium text-sm px-5 py-2.5 rounded-xl transition-colors disabled:opacity-50"
           >
-            <Sparkles size={16} />
+            <Sparkles size={15} className={aiLoading ? "animate-pulse" : ""} />
             {aiLoading ? "Reading..." : "Auto-fill form"}
           </button>
-        </div>
+        </motion.div>
 
-        {error && (
-          <div className="mb-5 text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg px-4 py-2.5 flex items-center justify-between gap-3">
-            <span>{error}</span>
-            {duplicateJobId && (
-              <Link
-                to={`/jobs/${duplicateJobId}`}
-                className="font-semibold text-red-700 hover:underline whitespace-nowrap"
-              >
-                View here →
-              </Link>
-            )}
-          </div>
-        )}
-        <form
+        <AnimatePresence>
+          {error && (
+            <motion.div
+              initial={{ opacity: 0, height: 0, marginBottom: 0 }}
+              animate={{ opacity: 1, height: "auto", marginBottom: 20 }}
+              exit={{ opacity: 0, height: 0, marginBottom: 0 }}
+              className="overflow-hidden"
+            >
+              <div className="text-sm text-[#8C2F26] bg-[#FBEAE8] border border-[#F0CFC9] rounded-lg px-4 py-2.5 flex items-center justify-between gap-3">
+                <span>{error}</span>
+                {duplicateJobId && (
+                  <Link
+                    to={`/jobs/${duplicateJobId}`}
+                    className="font-semibold text-[#8C2F26] hover:underline whitespace-nowrap"
+                  >
+                    View here →
+                  </Link>
+                )}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <motion.form
+          variants={fadeUp} initial="hidden" animate="show" custom={2}
           onSubmit={handleSubmit}
-          className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 space-y-5"
+          className="bg-white border border-[#E4E2DC] rounded-2xl p-6 sm:p-8 space-y-5"
         >
-          {/* Room selector */}
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1.5">
-              Post to
-            </label>
+            <label className={labelClass}>Post to</label>
             <select
               value={selectedRoom}
               onChange={(e) => setSelectedRoom(e.target.value)}
               required
-              className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+              className="w-full px-4 py-2.5 bg-[#F6F5F2] border border-[#E4E2DC] rounded-xl text-sm text-[#12151C] focus:outline-none focus:ring-2 focus:ring-[#2F5D50]/40 focus:border-[#2F5D50] transition-shadow"
             >
               <option value="">Select where to post</option>
 
@@ -231,21 +270,15 @@ export default function PostJob() {
                 </optgroup>
               )}
             </select>
-            <p className="text-xs text-slate-400 mt-1.5">
+            <p className="text-xs text-[#12151C]/35 mt-1.5">
               Public rooms are visible to everyone. Private rooms only to approved members.
             </p>
           </div>
-          {/* Title + Company */}
           <div className="grid sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                Job title
-              </label>
+              <label className={labelClass}>Job title</label>
               <div className="relative">
-                <Briefcase
-                  size={17}
-                  className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
-                />
+                <Briefcase size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#12151C]/30" />
                 <input
                   type="text"
                   name="title"
@@ -253,19 +286,14 @@ export default function PostJob() {
                   onChange={handleChange}
                   required
                   placeholder="SDE 1"
-                  className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                  className={fieldClass}
                 />
               </div>
             </div>
              <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                Company
-              </label>
+              <label className={labelClass}>Company</label>
               <div className="relative">
-                <Building2
-                  size={17}
-                  className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
-                />
+                <Building2 size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#12151C]/30" />
                   <input
                   type="text"
                   name="company"
@@ -273,22 +301,16 @@ export default function PostJob() {
                   onChange={handleChange}
                   required
                   placeholder="Razorpay"
-                  className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                  className={fieldClass}
                 />
               </div>
             </div>
           </div>
-          {/* Location + Salary */}
           <div className="grid sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                Location
-              </label>
+              <label className={labelClass}>Location</label>
               <div className="relative">
-                <MapPin
-                  size={17}
-                  className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
-                />
+                <MapPin size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#12151C]/30" />
                 <input
                   type="text"
                   name="location"
@@ -296,40 +318,31 @@ export default function PostJob() {
                   onChange={handleChange}
                   required
                   placeholder="Bangalore / Remote"
-                  className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                  className={fieldClass}
                 />
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                Salary <span className="text-slate-400 font-normal">(optional)</span>
+              <label className={labelClass}>
+                Salary <span className="text-[#12151C]/35 font-normal">(optional)</span>
               </label>
               <div className="relative">
-                <IndianRupee
-                  size={17}
-                  className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
-                />
+                <IndianRupee size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#12151C]/30" />
                 <input
                   type="text"
                   name="salary"
                   value={formData.salary}
                   onChange={handleChange}
                   placeholder="8 LPA"
-                  className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                  className={fieldClass}
                 />
               </div>
             </div>
           </div>
-          {/* Apply link */}
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1.5">
-              Apply link
-            </label>
+            <label className={labelClass}>Apply link</label>
             <div className="relative">
-              <LinkIcon
-                size={17}
-                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
-              />
+              <LinkIcon size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#12151C]/30" />
               <input
                 type="url"
                 name="applyLink"
@@ -337,28 +350,25 @@ export default function PostJob() {
                 onChange={handleChange}
                 required
                 placeholder="https://company.com/careers/role-id"
-                className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                className={fieldClass}
               />
             </div>
           </div>
-          {/* Skills — tag input */}
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1.5">
-              Skills required
-            </label>
-            <div className="flex flex-wrap items-center gap-2 w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus-within:ring-2 focus-within:ring-indigo-500 focus-within:border-transparent transition-all">
+            <label className={labelClass}>Skills required</label>
+            <div className="flex flex-wrap items-center gap-2 w-full px-3 py-2.5 bg-[#F6F5F2] border border-[#E4E2DC] rounded-xl focus-within:ring-2 focus-within:ring-[#2F5D50]/40 focus-within:border-[#2F5D50] transition-all">
               {skills.map((skill) => (
                 <span
                   key={skill}
-                  className="flex items-center gap-1 text-xs font-medium text-indigo-700 bg-indigo-50 pl-2.5 pr-1.5 py-1 rounded-full"
+                  className="flex items-center gap-1 font-mono text-[11px] font-medium text-[#2F5D50] bg-[#EAF1EE] pl-2 pr-1 py-1 rounded-md"
                 >
                   {skill}
                   <button
                     type="button"
                     onClick={() => removeSkill(skill)}
-                    className="hover:bg-indigo-100 rounded-full p-0.5 transition-colors"
+                    className="hover:bg-[#D3E3DC] rounded-full p-0.5 transition-colors"
                   >
-                    <X size={12} />
+                    <X size={11} />
                   </button>
                 </span>
               ))}
@@ -368,18 +378,15 @@ export default function PostJob() {
                 onChange={(e) => setSkillInput(e.target.value)}
                 onKeyDown={handleSkillKeyDown}
                 placeholder={skills.length === 0 ? "Type a skill and hit Enter" : "Add more..."}
-                className="flex-1 min-w-[120px] bg-transparent text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none py-0.5"
+                className="flex-1 min-w-[120px] bg-transparent text-sm text-[#12151C] placeholder:text-[#12151C]/30 focus:outline-none py-0.5"
               />
             </div>
-            <p className="text-xs text-slate-400 mt-1.5">
+            <p className="text-xs text-[#12151C]/35 mt-1.5">
               Press Enter or comma to add a skill
             </p>
           </div>
-          {/* Description */}
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1.5">
-              Job description
-            </label>
+            <label className={labelClass}>Job description</label>
             <textarea
               name="description"
               value={formData.description}
@@ -387,18 +394,19 @@ export default function PostJob() {
               required
               rows={5}
               placeholder="Paste or write the full job description here..."
-              className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all resize-none"
+              className="w-full px-4 py-3 bg-[#F6F5F2] border border-[#E4E2DC] rounded-xl text-sm text-[#12151C] placeholder:text-[#12151C]/30 focus:outline-none focus:ring-2 focus:ring-[#2F5D50]/40 focus:border-[#2F5D50] transition-shadow resize-none"
             />
           </div>
-          <button
+          <motion.button
+            whileTap={{ scale: 0.98 }}
             type="submit"
             disabled={loading}
-            className="w-full flex items-center justify-center gap-2 bg-slate-900 hover:bg-slate-800 text-white font-semibold text-sm py-3.5 rounded-xl transition-colors disabled:opacity-50"
+            className="w-full flex items-center justify-center gap-2 bg-[#12151C] hover:bg-[#2F5D50] text-white font-semibold text-sm py-3.5 rounded-xl transition-colors disabled:opacity-50"
           >
             {loading ? "Posting..." : "Post job"}
             {!loading && <Send size={16} />}
-          </button>
-        </form>
+          </motion.button>
+        </motion.form>
       </div>
     </div>
   );

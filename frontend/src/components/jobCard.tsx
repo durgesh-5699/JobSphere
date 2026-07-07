@@ -1,14 +1,15 @@
 import { useNavigate } from "react-router-dom";
 import { MapPin, Building2, IndianRupee, Trash2 } from "lucide-react";
+import { motion } from "framer-motion";
 import type { Job } from "../types/job.types";
 import useApplications from "../context/useApplication";
 
 interface JobCardProps {
   job: Job;
-  onDelete?: (jobId: string) => void; // naya optional prop
+  onDelete?: (jobId: string) => void;
 }
 
-const JobCard = ({ job, onDelete }: JobCardProps) => {
+export default function JobCard({ job, onDelete }: JobCardProps){
   const navigate = useNavigate();
   const { isApplied } = useApplications();
   const applied = isApplied(job._id);
@@ -22,28 +23,30 @@ const JobCard = ({ job, onDelete }: JobCardProps) => {
   };
 
   const handleDeleteClick = (e: React.MouseEvent) => {
-    e.stopPropagation(); // card ke onClick (navigate) ko trigger hone se roko
+    e.stopPropagation(); 
     onDelete?.(job._id);
   };
 
   return (
-    <div
+    <motion.div
       onClick={() => navigate(`/jobs/${job._id}`)}
-      className="group relative cursor-pointer bg-white border border-slate-200 rounded-2xl p-5 hover:border-indigo-300 hover:shadow-lg hover:shadow-indigo-50 transition-all"
+      whileHover={{ y: -3 }}
+      transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+      className="group relative h-full cursor-pointer bg-white border border-[#E4E2DC] rounded-2xl p-5 hover:border-[#2F5D50]/30 hover:shadow-[0_16px_32px_-16px_rgba(18,21,28,0.18)] transition-shadow"
     >
       <div className="flex justify-between items-start mb-3">
-        <div className="w-11 h-11 rounded-xl bg-indigo-50 flex items-center justify-center">
-          <Building2 size={20} className="text-indigo-600" />
+        <div className="w-11 h-11 rounded-xl bg-[#EAF1EE] flex items-center justify-center">
+          <Building2 size={19} className="text-[#2F5D50]" />
         </div>
 
         <div className="flex items-start gap-2">
           <div className="flex flex-col items-end gap-1">
             {applied && (
-              <span className="flex items-center gap-1 text-[10px] font-semibold text-green-700 bg-green-50 px-2 py-0.5 rounded-full">
-                Applied
+              <span className="text-[10px] font-mono font-semibold tracking-wide text-[#2F5D50] bg-[#EAF1EE] px-2 py-0.5 rounded-full">
+                APPLIED
               </span>
             )}
-            <span className="text-xs text-slate-400 font-medium">
+            <span className="font-mono text-[11px] text-[#12151C]/35">
               {timeAgo(job.createdAt)}
             </span>
           </div>
@@ -51,7 +54,7 @@ const JobCard = ({ job, onDelete }: JobCardProps) => {
           {onDelete && (
             <button
               onClick={handleDeleteClick}
-              className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+              className="p-1.5 rounded-lg text-[#12151C]/30 hover:text-[#B3413A] hover:bg-[#FBEAE8] transition-colors"
               aria-label="Delete job"
             >
               <Trash2 size={15} />
@@ -60,12 +63,12 @@ const JobCard = ({ job, onDelete }: JobCardProps) => {
         </div>
       </div>
 
-      <h3 className="font-display font-bold text-slate-900 text-lg mb-1 group-hover:text-indigo-600 transition-colors pr-6">
+      <h3 className="font-display font-semibold text-[#12151C] text-lg mb-1 group-hover:text-[#2F5D50] transition-colors pr-6">
         {job.title}
       </h3>
-      <p className="text-sm font-medium text-slate-600 mb-3">{job.company}</p>
+      <p className="text-sm font-medium text-[#12151C]/60 mb-3">{job.company}</p>
 
-      <p className="text-sm text-slate-500 line-clamp-2 mb-4">
+      <p className="text-sm text-[#12151C]/50 line-clamp-2 mb-4">
         {job.description}
       </p>
 
@@ -73,27 +76,25 @@ const JobCard = ({ job, onDelete }: JobCardProps) => {
         {job.skills.slice(0, 3).map((skill) => (
           <span
             key={skill}
-            className="text-xs font-medium text-indigo-700 bg-indigo-50 px-2.5 py-1 rounded-full"
+            className="font-mono text-[11px] font-medium text-[#2F5D50] bg-[#EAF1EE] px-2 py-1 rounded-md"
           >
             {skill}
           </span>
         ))}
       </div>
 
-      <div className="flex items-center justify-between pt-4 border-t border-slate-100">
-        <div className="flex items-center gap-1.5 text-xs text-slate-500">
+      <div className="flex items-center justify-between pt-4 border-t border-[#EDEBE5]">
+        <div className="flex items-center gap-1.5 text-xs text-[#12151C]/50">
           <MapPin size={13} />
           {job.location}
         </div>
         {job.salary && (
-          <div className="flex items-center gap-1 text-xs font-semibold text-slate-700">
+          <div className="flex items-center gap-1 font-mono text-xs font-semibold text-[#8A6316] bg-[#FBF3E3] px-2 py-0.5 rounded-md">
             <IndianRupee size={12} />
             {job.salary.replace("₹", "")}
           </div>
         )}
       </div>
-    </div>
+    </motion.div>
   );
 };
-
-export default JobCard;

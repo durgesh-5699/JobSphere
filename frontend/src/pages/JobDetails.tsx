@@ -9,11 +9,21 @@ import {
   Trash2,
 } from "lucide-react";
 import { Link, useNavigate, useParams } from "react-router-dom";
+import { motion } from "framer-motion";
 import useApplications from "../context/useApplication";
 import { useEffect, useState } from "react";
 import type { Job } from "../types/job.types";
 import { fetchJobById, deleteJob } from "../services/jobService";
 import useAuth from "../context/useAuth";
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 14 },
+  show: (i: number = 0) => ({
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.45, delay: i * 0.08, ease: [0.22, 1, 0.36, 1] },
+  }),
+};
 
 export default function JobDetail() {
   const { id } = useParams();
@@ -72,8 +82,11 @@ export default function JobDetail() {
 
   if (loading) {
     return (
-      <div className="max-w-3xl mx-auto px-6 py-20 text-center">
-        <p className="text-slate-500">Loading...</p>
+      <div className="min-h-[calc(100vh-73px)] bg-[#F6F5F2] flex items-center justify-center">
+        <div className="flex items-center gap-3 text-[#12151C]/50">
+          <span className="w-4 h-4 rounded-full border-2 border-[#12151C]/20 border-t-[#2F5D50] animate-spin" />
+          <span className="font-mono text-xs tracking-[0.15em] uppercase">Loading</span>
+        </div>
       </div>
     );
   }
@@ -81,8 +94,8 @@ export default function JobDetail() {
   if (!job) {
     return (
       <div className="max-w-3xl mx-auto px-6 py-20 text-center">
-        <p className="text-slate-500 mb-4">This job posting doesn't exist.</p>
-        <Link to="/" className="text-indigo-600 font-semibold hover:underline">
+        <p className="text-[#12151C]/50 mb-4">This job posting doesn't exist.</p>
+        <Link to="/" className="text-[#2F5D50] font-semibold hover:text-[#12151C] transition-colors">
           Back to dashboard
         </Link>
       </div>
@@ -90,36 +103,38 @@ export default function JobDetail() {
   }
 
   return (
-    <div className="bg-slate-50 min-h-[calc(100vh-73px)]">
+    <div className="bg-[#F6F5F2] min-h-[calc(100vh-73px)]">
       <div className="max-w-3xl mx-auto px-6 py-10">
-        {/* Back button */}
-        <button
+        <motion.button
+          variants={fadeUp} initial="hidden" animate="show" custom={0}
           onClick={() => navigate(-1)}
-          className="flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors mb-6"
+          className="flex items-center gap-1.5 text-sm font-medium text-[#12151C]/50 hover:text-[#12151C] transition-colors mb-6"
         >
           <ArrowLeft size={16} />
           Back to jobs
-        </button>
+        </motion.button>
 
-        {/* Header card */}
-        <div className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 mb-6">
+        <motion.div
+          variants={fadeUp} initial="hidden" animate="show" custom={1}
+          className="bg-white border border-[#E4E2DC] rounded-2xl p-6 sm:p-8 mb-5"
+        >
           <div className="flex items-start justify-between gap-4 mb-5">
             <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-xl bg-indigo-50 flex items-center justify-center flex-shrink-0">
-                <Building2 size={26} className="text-indigo-600" />
+              <div className="w-14 h-14 rounded-xl bg-[#EAF1EE] flex items-center justify-center flex-shrink-0">
+                <Building2 size={24} className="text-[#2F5D50]" />
               </div>
               <div>
-                <h1 className="font-display text-2xl font-bold text-slate-900">
+                <h1 className="font-display text-2xl font-semibold text-[#12151C] tracking-tight">
                   {job.title}
                 </h1>
-                <p className="text-slate-600 font-medium">{job.company}</p>
+                <p className="text-[#12151C]/60 font-medium">{job.company}</p>
               </div>
             </div>
 
             {isOwner && (
               <button
                 onClick={handleDelete}
-                className="flex items-center gap-1.5 text-sm font-semibold text-red-600 border border-red-200 bg-red-50 hover:bg-red-100 px-4 py-2 rounded-xl transition-colors flex-shrink-0"
+                className="flex items-center gap-1.5 text-sm font-semibold text-[#B3413A] border border-[#F0CFC9] bg-[#FBEAE8] hover:bg-[#F5DBD6] px-4 py-2 rounded-xl transition-colors flex-shrink-0"
               >
                 <Trash2 size={15} />
                 <span className="hidden sm:inline">Delete</span>
@@ -127,44 +142,42 @@ export default function JobDetail() {
             )}
           </div>
 
-          {/* Meta info */}
-          <div className="flex flex-wrap gap-x-6 gap-y-2 mb-6 text-sm text-slate-500">
+          <div className="flex flex-wrap gap-x-6 gap-y-2 mb-6 text-sm text-[#12151C]/55">
             <div className="flex items-center gap-1.5">
               <MapPin size={14} />
               {job.location}
             </div>
             {job.salary && (
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-1.5 font-mono text-[#8A6316]">
                 <IndianRupee size={14} />
                 {job.salary.replace("₹", "")}
               </div>
             )}
-            <div className="flex items-center gap-1.5">
-              <Calendar size={14} />
+            <div className="flex items-center gap-1.5 font-mono text-xs">
+              <Calendar size={14} className="text-[#12151C]/55" />
               Posted {formatDate(job.createdAt)}
             </div>
           </div>
 
-          {/* Skills */}
           <div className="flex flex-wrap gap-2 mb-6">
             {job.skills.map((skill) => (
               <span
                 key={skill}
-                className="text-xs font-medium text-indigo-700 bg-indigo-50 px-3 py-1.5 rounded-full"
+                className="font-mono text-[11px] font-medium text-[#2F5D50] bg-[#EAF1EE] px-2.5 py-1.5 rounded-md"
               >
                 {skill}
               </span>
             ))}
           </div>
 
-          {/* Apply button */}
-          <button
+          <motion.button
+            whileTap={{ scale: applied ? 1 : 0.98 }}
             onClick={handleApply}
             disabled={applied}
             className={`inline-flex items-center gap-2 font-semibold text-sm px-6 py-3 rounded-xl transition-colors ${
               applied
-                ? "bg-green-50 text-green-700 border border-green-200 cursor-default"
-                : "bg-slate-900 hover:bg-slate-800 text-white"
+                ? "bg-[#EAF1EE] text-[#2F5D50] border border-[#D3E3DC] cursor-default"
+                : "bg-[#12151C] hover:bg-[#2F5D50] text-white"
             }`}
           >
             {applied ? (
@@ -178,18 +191,20 @@ export default function JobDetail() {
                 <ExternalLink size={16} />
               </>
             )}
-          </button>
-        </div>
+          </motion.button>
+        </motion.div>
 
-        {/* Description card */}
-        <div className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8">
-          <h2 className="font-display text-lg font-bold text-slate-900 mb-4">
-            Job Description
-          </h2>
-          <p className="text-slate-600 leading-relaxed whitespace-pre-line">
+        <motion.div
+          variants={fadeUp} initial="hidden" animate="show" custom={2}
+          className="bg-white border border-[#E4E2DC] rounded-2xl p-6 sm:p-8"
+        >
+          <p className="font-mono text-[10px] font-semibold text-[#12151C]/35 uppercase tracking-[0.15em] mb-4">
+            Job description
+          </p>
+          <p className="text-[#12151C]/70 leading-relaxed whitespace-pre-line">
             {job.description}
           </p>
-        </div>
+        </motion.div>
       </div>
     </div>
   );
