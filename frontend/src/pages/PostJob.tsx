@@ -8,10 +8,12 @@ import {
   Sparkles,
   X,
 } from "lucide-react";
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { createJob } from "../services/jobService";
 import { parseJobInput } from "../services/aiService";
+import { fetchMyRooms, fetchPublicRooms } from "../services/roomService";
+import type { Room } from "../types/room.types";
 
 interface JobFormData {
   title: string;
@@ -43,7 +45,21 @@ export default function PostJob() {
 
   const [duplicateJobId,setDuplicateJobId] = useState<string | null>(null);
 
+  const [publicRooms, setPublicRooms] = useState<Room[]>([]);
+  const [myRooms, setMyRooms] = useState<Room[]>([]);
+  const [selectedRoom, setSelectedRoom] = useState("");
+
   const navigate = useNavigate();
+
+  useEffect(() => {
+    Promise.all([fetchPublicRooms(), fetchMyRooms()])
+      .then(([pub, mine]) => {
+        setPublicRooms(pub);
+        // My private rooms — public wale duplicate na ho isliye filter kiya
+        setMyRooms(mine.filter((r) => !r.isPublic));
+      })
+      .catch(console.error);
+  }, []);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -130,7 +146,8 @@ export default function PostJob() {
           Spotted a role? Post it so your batchmates don't miss it.
         </p>
 
-          <div className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 mb-6">
+        {/* AI Auto-fill box */}
+        <div className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 mb-6">
           <div className="flex items-center gap-2 mb-3">
             <Sparkles size={18} className="text-amber-500" />
             <h2 className="font-display font-bold text-slate-900">Auto-fill with AI</h2>
@@ -146,7 +163,7 @@ export default function PostJob() {
             </div>
           )}
 
-          <textarea
+           <textarea
             value={rawText}
             onChange={(e) => setRawText(e.target.value)}
             rows={5}
@@ -164,7 +181,7 @@ export default function PostJob() {
             {aiLoading ? "Reading..." : "Auto-fill form"}
           </button>
         </div>
-        
+
         {error && (
           <div className="mb-5 text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg px-4 py-2.5 flex items-center justify-between gap-3">
             <span>{error}</span>
@@ -178,11 +195,46 @@ export default function PostJob() {
             )}
           </div>
         )}
-
         <form
-            onSubmit={handleSubmit}
+          onSubmit={handleSubmit}
           className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 space-y-5"
         >
+          {/* Room selector */}
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">
+              Post to
+            </label>
+            <select
+              value={selectedRoom}
+              onChange={(e) => setSelectedRoom(e.target.value)}
+              required
+              className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+            >
+              <option value="">Select where to post</option>
+
+              {publicRooms.length > 0 && (
+                <optgroup label="🌐 Public Rooms">
+                  {publicRooms.map((room) => (
+                    <option key={room._id} value={room._id}>
+                      {room.name}
+                    </option>
+                  ))}
+                </optgroup>
+              )}
+              {myRooms.length > 0 && (
+                <optgroup label="🔒 My Private Rooms">
+                  {myRooms.map((room) => (
+                    <option key={room._id} value={room._id}>
+                      {room.name}
+                    </option>
+                  ))}
+                </optgroup>
+              )}
+            </select>
+            <p className="text-xs text-slate-400 mt-1.5">
+              Public rooms are visible to everyone. Private rooms only to approved members.
+            </p>
+          </div>
           {/* Title + Company */}
           <div className="grid sm:grid-cols-2 gap-4">
             <div>
@@ -197,16 +249,15 @@ export default function PostJob() {
                 <input
                   type="text"
                   name="title"
-                    value={formData.title}
-                    onChange={handleChange}
+                  value={formData.title}
+                  onChange={handleChange}
                   required
                   placeholder="SDE 1"
                   className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
                 />
               </div>
             </div>
-
-            <div>
+             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1.5">
                 Company
               </label>
@@ -215,11 +266,11 @@ export default function PostJob() {
                   size={17}
                   className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
                 />
-                <input
+                  <input
                   type="text"
                   name="company"
-                    value={formData.company}
-                    onChange={handleChange}
+                  value={formData.company}
+                  onChange={handleChange}
                   required
                   placeholder="Razorpay"
                   className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
@@ -227,7 +278,6 @@ export default function PostJob() {
               </div>
             </div>
           </div>
-
           {/* Location + Salary */}
           <div className="grid sm:grid-cols-2 gap-4">
             <div>
@@ -242,19 +292,17 @@ export default function PostJob() {
                 <input
                   type="text"
                   name="location"
-                    value={formData.location}
-                    onChange={handleChange}
+                  value={formData.location}
+                  onChange={handleChange}
                   required
                   placeholder="Bangalore / Remote"
                   className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
                 />
               </div>
             </div>
-
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                Salary{" "}
-                <span className="text-slate-400 font-normal">(optional)</span>
+                Salary <span className="text-slate-400 font-normal">(optional)</span>
               </label>
               <div className="relative">
                 <IndianRupee
@@ -264,15 +312,14 @@ export default function PostJob() {
                 <input
                   type="text"
                   name="salary"
-                    value={formData.salary}
-                    onChange={handleChange}
+                  value={formData.salary}
+                  onChange={handleChange}
                   placeholder="8 LPA"
                   className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
                 />
               </div>
             </div>
           </div>
-
           {/* Apply link */}
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1.5">
@@ -294,7 +341,6 @@ export default function PostJob() {
               />
             </div>
           </div>
-
           {/* Skills — tag input */}
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1.5">
@@ -321,19 +367,14 @@ export default function PostJob() {
                 value={skillInput}
                 onChange={(e) => setSkillInput(e.target.value)}
                 onKeyDown={handleSkillKeyDown}
-                placeholder={
-                  skills.length === 0
-                    ? "Type a skill and hit Enter"
-                    : "Add more..."
-                }
-                className="flex-1 min-w-30 bg-transparent text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none py-0.5"
+                placeholder={skills.length === 0 ? "Type a skill and hit Enter" : "Add more..."}
+                className="flex-1 min-w-[120px] bg-transparent text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none py-0.5"
               />
             </div>
             <p className="text-xs text-slate-400 mt-1.5">
               Press Enter or comma to add a skill
             </p>
           </div>
-
           {/* Description */}
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1.5">
@@ -349,7 +390,6 @@ export default function PostJob() {
               className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all resize-none"
             />
           </div>
-
           <button
             type="submit"
             disabled={loading}
@@ -360,6 +400,8 @@ export default function PostJob() {
           </button>
         </form>
       </div>
-     </div>
+    </div>
   );
+
+
 }

@@ -1,6 +1,7 @@
 import type { Request, Response } from "express";
 import Job from "../models/jobModel";
 import RoomMembership from "../models/roomMembershipModel";
+import Room from "../models/roomModel"
 
 const normalizeUrl=(url:string):string=>{
     try{
@@ -18,14 +19,26 @@ export const createJob=async(req:Request,res:Response)=>{
             return res.status(400).json({message:"please fill all required fields, including room"});
         }
 
+        const roomDoc = await Room.findById(room);
+        if(!roomDoc){
+            return res.status(404).json({ message: "Room not found" });
+        }
+
         const membership = await RoomMembership.findOne({
             room,
             user:req.user?.id,
-            status:"approved",
         });
 
-        if(!membership){
-            return res.status(403).json({ message: "You must be a member of this room to post here" });
+        if(!membership &&  roomDoc.isPublic){
+            membership = await RoomMembership.create({
+                room,
+                user : req.user?._id,
+                status:"approved",
+            });
+        }
+
+        if(!membership || membership.status !== "approved"){
+            return res.status(403).json({ message: "You must be an approved member of this room to post here" });
         }
 
         const normalizedLink = normalizeUrl(applyLink);

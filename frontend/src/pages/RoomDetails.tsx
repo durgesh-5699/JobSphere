@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { Globe, Lock, Users, Check, X, Clock } from "lucide-react";
 import {
   fetchRoomById,
