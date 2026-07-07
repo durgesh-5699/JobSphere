@@ -40,7 +40,7 @@ export default function RoomDetail() {
       const memberList = await fetchRoomMembers(roomId);
       setMembers(memberList);
 
-      if (data.room.owner === user?._id) {
+      if (data.room.owner === user?.id) {
         const pending = await fetchPendingRequests(roomId);
         setRequests(pending);
       }

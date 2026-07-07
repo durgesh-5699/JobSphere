@@ -11,7 +11,7 @@ roomRouter.get("/search", protect, roomController.searchRooms);
 roomRouter.get("/:id",protect,roomController.getRoomById);
 roomRouter.post("/:id/join",protect,roomController.joinRoom);
 roomRouter.get("/:id/requests",protect,roomController.getPendingRequest);
-roomRouter.patch("/:id/request/:membershipId",protect,roomController.respondToRequest);
+roomRouter.patch("/:id/requests/:membershipId",protect,roomController.respondToRequest);
 roomRouter.get("/:id/members", protect, roomController.getRoomMembers);
 
 export default roomRouter ;

@@ -87,5 +87,12 @@ export const logoutUser=(req:Request,res:Response)=>{
 }
 
 export const getMe = async(req:Request,res:Response)=>{
-    res.status(200).json({user:req.user});
+    res.status(200).json({
+    user: {
+      id: req.user?._id,
+      name: req.user?.name,
+      email: req.user?.email,
+      role: req.user?.role,
+    },
+    });
 }
