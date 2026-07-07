@@ -13,3 +13,8 @@ export interface RoomMembership {
   user: { _id: string; name: string; email: string };
   status: "pending" | "approved" | "rejected";
 }
+
+export interface RoomMember {
+  _id: string;
+  user: { _id: string; name: string; email: string };
+}

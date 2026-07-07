@@ -1,5 +1,5 @@
 import axios from "axios";
-import type { Room, RoomMembership } from "../types/room.types";
+import type { Room, RoomMember, RoomMembership } from "../types/room.types";
 
 export const createRoom = async(data:{
     name:string;
@@ -48,4 +48,9 @@ export const respondToRequest = async (
 export const searchRooms = async (query: string): Promise<Room[]> => {
   const res = await axios.get("/api/rooms/search", { params: { q: query } });
   return res.data.rooms;
+};
+
+export const fetchRoomMembers=async(roomId: string):Promise<RoomMember[]>=>{
+  const res = await axios.get(`/api/rooms/${roomId}/members`);
+  return res.data.members;
 };

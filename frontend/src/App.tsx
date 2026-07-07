@@ -12,6 +12,7 @@ import AppliedJobs from "./pages/AppliedJobs";
 import ProfilePage from "./pages/Profile";
 import Rooms from "./pages/Rooms";
 import RoomDetails from "./pages/RoomDetails";
+import UserProfileView from "./pages/UserProfileView";
 
 export default function App() {
   return (
@@ -93,6 +94,13 @@ export default function App() {
               </ProtectedRoutes>
             }
           />
+
+          <Route 
+            path="/users/:userId" 
+            element={<ProtectedRoutes>
+              <UserProfileView />
+            </ProtectedRoutes>} />
+
         </Routes>
       </main>
       <Footer />

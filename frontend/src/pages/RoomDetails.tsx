@@ -8,20 +8,23 @@ import {
   respondToRequest,
 } from "../services/roomService";
 import useAuth from "../context/useAuth";
-import type { Room, RoomMembership } from "../types/room.types";
+import type { Room, RoomMember, RoomMembership } from "../types/room.types";
+import { Link } from "react-router-dom";
+import { fetchRoomMembers } from "../services/roomService";
 
-export default function RoomDetail(){
+export default function RoomDetail() {
   const { id } = useParams();
-  const navigate = useNavigate();
   const { user } = useAuth();
 
   const [room, setRoom] = useState<Room | null>(null);
-  const [myStatus, setMyStatus] = useState<"pending" | "approved" | "rejected" | null>(null);
+  const [myStatus, setMyStatus] = useState<
+    "pending" | "approved" | "rejected" | null
+  >(null);
   const [requests, setRequests] = useState<RoomMembership[]>([]);
   const [loading, setLoading] = useState(true);
   const [joining, setJoining] = useState(false);
 
-  
+  const [members, setMembers] = useState<RoomMember[]>([]);
 
   useEffect(() => {
     if (id) loadRoom(id);
@@ -33,6 +36,9 @@ export default function RoomDetail(){
       const data = await fetchRoomById(roomId);
       setRoom(data.room);
       setMyStatus(data.myStatus);
+
+      const memberList = await fetchRoomMembers(roomId);
+      setMembers(memberList);
 
       if (data.room.owner === user?._id) {
         const pending = await fetchPendingRequests(roomId);
@@ -58,7 +64,10 @@ export default function RoomDetail(){
     }
   };
 
-  const handleRespond = async (membershipId: string, action: "approve" | "reject") => {
+  const handleRespond = async (
+    membershipId: string,
+    action: "approve" | "reject",
+  ) => {
     if (!id) return;
     try {
       await respondToRequest(id, membershipId, action);
@@ -91,7 +100,9 @@ export default function RoomDetail(){
       <div className="max-w-2xl mx-auto px-6 py-10">
         <div className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 mb-6">
           <div className="flex items-start justify-between mb-3">
-            <h1 className="font-display text-2xl font-bold text-slate-900">{room.name}</h1>
+            <h1 className="font-display text-2xl font-bold text-slate-900">
+              {room.name}
+            </h1>
             {room.isPublic ? (
               <span className="flex items-center gap-1 text-xs font-semibold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-full">
                 <Globe size={12} /> Public
@@ -103,7 +114,9 @@ export default function RoomDetail(){
             )}
           </div>
 
-          {room.description && <p className="text-slate-600 mb-5">{room.description}</p>}
+          {room.description && (
+            <p className="text-slate-600 mb-5">{room.description}</p>
+          )}
 
           {/* Join status / button */}
           {myStatus === "approved" && (
@@ -123,7 +136,11 @@ export default function RoomDetail(){
               className="flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white font-semibold text-sm px-5 py-2.5 rounded-xl transition-colors disabled:opacity-50"
             >
               <Users size={16} />
-              {joining ? "Joining..." : room.isPublic ? "Join Room" : "Request to Join"}
+              {joining
+                ? "Joining..."
+                : room.isPublic
+                  ? "Join Room"
+                  : "Request to Join"}
             </button>
           )}
         </div>
@@ -140,10 +157,18 @@ export default function RoomDetail(){
                   className="flex items-center justify-between bg-slate-50 border border-slate-200 rounded-xl p-3.5"
                 >
                   <div>
-                    <p className="text-sm font-semibold text-slate-800">{req.user.name}</p>
+                    <p className="text-sm font-semibold text-slate-800">
+                      {req.user.name}
+                    </p>
                     <p className="text-xs text-slate-500">{req.user.email}</p>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex items-center gap-3">
+                    <Link
+                      to={`/users/${req.user._id}`}
+                      className="text-xs font-semibold text-indigo-600 hover:underline"
+                    >
+                      View Profile
+                    </Link>
                     <button
                       onClick={() => handleRespond(req._id, "approve")}
                       className="p-2 rounded-lg bg-green-50 text-green-700 hover:bg-green-100 transition-colors"
@@ -164,7 +189,36 @@ export default function RoomDetail(){
             </div>
           </div>
         )}
+
+        <div className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 mt-6">
+          <h2 className="font-display font-bold text-slate-900 mb-4">
+            Members ({members.length})
+          </h2>
+          {members.length > 0 ? (
+            <div className="space-y-2">
+              {members.map((m) => (
+                <Link
+                  key={m._id}
+                  to={`/users/${m.user._id}`}
+                  className="flex items-center justify-between bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl p-3 transition-colors"
+                >
+                  <div>
+                    <p className="text-sm font-semibold text-slate-800">
+                      {m.user.name}
+                    </p>
+                    <p className="text-xs text-slate-500">{m.user.email}</p>
+                  </div>
+                  <span className="text-xs font-semibold text-indigo-600">
+                    View →
+                  </span>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <p className="text-slate-400 italic text-sm">No members yet.</p>
+          )}
+        </div>
       </div>
     </div>
   );
-};
+}

@@ -156,3 +156,21 @@ export const searchRooms = async (req: Request, res: Response) => {
     res.status(500).json({ message: `Error: ${err.message}` });
   }
 };
+
+export const getRoomMembers=async(req:Request, res:Response)=>{
+  try{
+    const room = await Room.findById(req.params.id);
+    if (!room) {
+      return res.status(404).json({ message: "Room not found" });
+    }
+
+    const members = await RoomMembership.find({
+      room: room._id,
+      status: "approved",
+    }).populate("user", "name email");
+
+    res.status(200).json({ members });
+  }catch(err:any){
+    res.status(500).json({ message: `Error: ${err.message}` });
+  }
+};

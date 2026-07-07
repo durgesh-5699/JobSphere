@@ -125,3 +125,20 @@ export const uploadResume = async(req:Request,res:Response)=> {
         res.status(500).json({ message: `Error: ${err.message}` });
     }
 };
+
+export const getProfileByUserId = async (req: Request, res: Response) => {
+  try{
+    const profile = await Profile.findOne({ user: req.params.userId }).populate(
+      "user",
+      "name email"
+    );
+
+    if(!profile){
+      return res.status(404).json({ message: "Profile not found" });
+    }
+
+    res.status(200).json({ profile });
+  }catch(err:any){
+    res.status(500).json({ message: `Error: ${err.message}` });
+  }
+};

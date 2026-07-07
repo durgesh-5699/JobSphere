@@ -21,3 +21,8 @@ export const uploadResume=async(file:File):Promise<{profile:Profile; parsedData:
     console.log(res.data);
     return {profile : res.data.profile, parsedData:res.data.parsedData};
 }
+
+export const fetchProfileByUserId = async (userId: string): Promise<Profile & { user: { name: string; email: string } }> => {
+  const res = await axios.get(`/api/profile/user/${userId}`);
+  return res.data.profile;
+};
