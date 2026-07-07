@@ -54,3 +54,17 @@ export const fetchRoomMembers=async(roomId: string):Promise<RoomMember[]>=>{
   const res = await axios.get(`/api/rooms/${roomId}/members`);
   return res.data.members;
 };
+
+export const updateRoom = async(roomId:string,data:{name?:string; desciription?:string; isPublic?:boolean}):Promise<Room>=>{
+  const res = await axios.patch(`/api/rooms/${roomId}`, data);
+  return res.data.room;
+};
+
+export const removeMember = async(roomId:string,membershipId:string):Promise<void>=>{
+  await axios.delete(`/api/rooms/${roomId}/members/${membershipId}`);
+};
+
+export const fetchRoomJobs = async(roomId:string):Promise<any[]>=>{
+  const res = await axios.get(`/api/rooms/${roomId}/jobs`);
+  return res.data.jobs;
+}

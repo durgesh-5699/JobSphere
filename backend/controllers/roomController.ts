@@ -1,13 +1,23 @@
 import type {Request,Response} from "express";
 import Room from "../models/roomModel";
 import RoomMembership from "../models/roomMembershipModel";
+import Job from "../models/jobModel"
+const escapeRegex = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 export const createRoom = async(req:Request,res:Response)=>{
     try{
        const {name,description,isPublic} = req.body;
-       if(!name || !description){
+       if(!name || !name.trim() || !description){
         return res.status(400).json({message:"Fill each information"});
        }
+
+       const existing = await Room.findOne({
+        name : {$regex : `^${escapeRegex(name.trim())}$`, $options:"i"},
+       });
+
+       if (existing) {
+            return res.status(409).json({ message: "A room with this name already exists" });
+        }
 
        const room = await Room.create({name,description,isPublic:!!isPublic,owner:req.user?._id});
 
@@ -139,7 +149,6 @@ export const respondToRequest = async(req:Request,res:Response)=>{
     }
 }
 
-// @route GET /api/rooms/search?q=...
 export const searchRooms = async (req: Request, res: Response) => {
   try {
     const { q } = req.query;
@@ -174,3 +183,87 @@ export const getRoomMembers=async(req:Request, res:Response)=>{
     res.status(500).json({ message: `Error: ${err.message}` });
   }
 };
+
+export const updateRoom = async(req:Request,res:Response)=>{
+    try {
+        const room = await Room.findById(req.params.id);
+        if(!room){
+            return res.status(404).json({ message: "Room not found" });
+        }
+        if(room.owner.toString() !== req.user?._id?.toString()){
+            return res.status(403).json({ message: "Not authorized" });
+        }
+
+        const {name,description,isPublic} = req.body;
+
+        if(name && name.trim() !== room.name){
+            const duplicate = await Room.findOne({
+            _id: { $ne: room._id },    
+            name: { $regex: `^${escapeRegex(name.trim())}$`, $options: "i" },
+        });
+        if(duplicate){
+            return res.status(409).json({ message: "A room with this name already exists" });
+        }
+        room.name = name.trim();
+        }
+
+        if(description !== undefined) room.description = description;
+        if(isPublic !== undefined) room.isPublic = !!isPublic;
+
+        await room.save();
+        res.status(200).json({ room });
+    }catch(err:any){
+        res.status(500).json({ message: `Error: ${err.message}` });
+    }
+};
+
+export const removeMember = async(req:Request,res:Response)=>{
+    try{
+        const room = await Room.findById(req.params.id);
+        if (!room){
+            return res.status(404).json({ message: "Room not found" });
+        }
+        if(room.owner.toString() !== req.user?._id?.toString()) {
+            return res.status(403).json({ message: "Not authorized" });
+        }
+        const membership = await RoomMembership.findById(req.params.membershipId);
+        if(!membership){
+            return res.status(404).json({ message: "Member not found" });
+        }
+
+        if(membership.user.toString() === room.owner.toString()){
+            return res.status(400).json({ message: "Owner cannot be removed from their own room" });
+        }
+
+        await membership.deleteOne();
+        res.status(200).json({ message: "Member removed" });
+    }catch(err:any){
+         res.status(500).json({ message: `Error: ${err.message}` });
+    }
+};
+
+export const getRoomJobs = async(req:Request,res:Response)=>{
+    try{
+       const room = await Room.findById(req.params.id);
+       if(!room){
+            return res.status(404).json({ message: "Room not found" });
+       }
+
+       if(!room.isPublic){
+         const membership = await RoomMembership.findOne({
+         room: room._id,
+         user: req.user?._id,
+         status: "approved",
+        });
+
+        if(!membership){
+            return res.status(403).json({ message: "Not authorized to view this room's jobs" });
+        }
+        }
+
+        const jobs = await Job.find({ room: room._id }).sort({ createdAt: -1 });
+        res.status(200).json({ jobs });
+    }catch(err:any){
+        res.status(500).json({ message: `Error: ${err.message}` });
+    }
+}

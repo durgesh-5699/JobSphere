@@ -119,7 +119,7 @@ export default function PostJob() {
     }
     setLoading(true);
     try{
-      await createJob({...formData,skills});
+      await createJob({...formData,skills, room:selectedRoom});
       navigate("/");
     }catch(err:any){
       if(err.response?.status === 409 && err.response?.data?.existingJobId){

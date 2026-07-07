@@ -15,6 +15,9 @@ const normalizeUrl=(url:string):string=>{
 export const createJob=async(req:Request,res:Response)=>{
     try {
         const {title,company,description,applyLink,location,skills,salary,room} = req.body;
+
+        console.log(title,company,description,applyLink,location,skills,salary,room);
+
         if(!title || !company || !description || !applyLink || !location || !skills || !salary || !room){
             return res.status(400).json({message:"please fill all required fields, including room"});
         }

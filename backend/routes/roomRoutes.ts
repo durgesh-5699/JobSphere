@@ -13,5 +13,7 @@ roomRouter.post("/:id/join",protect,roomController.joinRoom);
 roomRouter.get("/:id/requests",protect,roomController.getPendingRequest);
 roomRouter.patch("/:id/requests/:membershipId",protect,roomController.respondToRequest);
 roomRouter.get("/:id/members", protect, roomController.getRoomMembers);
+roomRouter.delete("/:id/members/:membershipId", protect, roomController.removeMember);
+roomRouter.get("/:id/jobs", protect, roomController.getRoomJobs);
 
 export default roomRouter ;
