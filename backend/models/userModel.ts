@@ -6,6 +6,10 @@ const userSchema = new mongoose.Schema(
         email:{type:String,required:true,unique:true,trim:true,lowercase:true},
         password:{type:String,required:true,minlength:7},
         role:{type:String,enum:["student","admin"],default:"student"},
+        isVerified:{type:Boolean,default:false},
+        otp:{type:String,default:null},
+        otpExpiry:{type:Date,default:null},
+        googleId:{type:String,default:null}
     },{timestamps:true}
 );
 
