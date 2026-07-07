@@ -1,16 +1,25 @@
 import config from "../config/config.ts";
-import transporter from "../config/mail.ts";
+import resend from "../config/mail.ts";
 
-export const sendOTP = async(email:string,otp:string)=>{
-    await transporter.sendMail({
-        from : config.EMAIL_USER,
-        to:email,
-        subject:"Verify your Email",
-        html:`
+export const sendOTP =async(email: string, otp: string)=>{
+
+    await resend.emails.send({
+
+        from: config.EMAIL_FROM!,
+        to: email,
+        subject: "Verify Your Email",
+
+        html: `
+        <div style="font-family:Arial;padding:20px">
             <h2>Email Verification</h2>
-            <p>Your OTP is</p>
+
+            <p>Your verification code is</p>
+
             <h1>${otp}</h1>
-            <p>This OTP expires in 5 minutes.</p>
+
+            <p>This code expires in 5 minutes.</p>
+        </div>
         `
     });
+
 };
