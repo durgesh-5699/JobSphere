@@ -2,6 +2,7 @@ import type { Request, Response } from "express";
 import OpenAI from "openai";
 import * as cheerio from "cheerio";
 import config from "../config/config"
+import {retryAsync} from "../utils/retryAsync.ts"
 
 const groq = new OpenAI({
   apiKey: config.GROQ_API_KEY,
@@ -85,6 +86,24 @@ Extract skills as an array of short tags (e.g. "React", "Node.js"), not full sen
 If the input is JSON-LD structured data, map fields like "title", "hiringOrganization.name", "jobLocation.address", "baseSalary" directly — they are usually accurate and complete.
 If the text is scraped webpage content (not structured data), ignore unrelated navigation/footer/ad text and focus only on the actual job posting content.`;
 
+const exractJobDataFromText = async(contentToAnalyze:string):Promise<Record<string,any>>=>{
+  const completion=  await groq.chat.completions.create({
+    model : "llama-3.3-70b-versatile",
+    messages : [
+      { role: "system", content: buildSystemPrompt() },
+      { role: "user", content: contentToAnalyze },
+    ],
+    temperature : 0.3,
+  });
+
+  const rawJson = completion.choices[0]?.message?.content || "{}";
+  const cleaned = rawJson.replace(/```json|```/g, "").trim();
+
+  const parsed = JSON.parse(cleaned);
+
+  return parsed;
+}
+
 export const parseJobText = async (req: Request, res: Response) => {
   try {
     const { input } = req.body;
@@ -107,18 +126,16 @@ export const parseJobText = async (req: Request, res: Response) => {
       }
     }
 
-    const completion = await groq.chat.completions.create({
-      model: "llama-3.3-70b-versatile",
-      messages: [
-        { role: "system", content: buildSystemPrompt() },
-        { role: "user", content: contentToAnalyze },
-      ],
-      temperature: 0.3,
-    });
-
-    const rawJson = completion.choices[0]?.message?.content || "{}";
-    const cleaned = rawJson.replace(/```json|```/g, "").trim();
-    const parsed = JSON.parse(cleaned);
+     const parsed = await retryAsync(
+      () => exractJobDataFromText(contentToAnalyze),
+      {
+        retries: 3,
+        delayMs: 800,
+        isValid: (result:any) => {
+          return !!(result && (result.title?.trim() || result.description?.trim()));
+        },
+      }
+    );
 
     if (sourceApplyLink && !parsed.applyLink) {
       parsed.applyLink = sourceApplyLink;

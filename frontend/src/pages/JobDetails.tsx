@@ -55,7 +55,13 @@ export default function JobDetail() {
 
   const handleApply = async () => {
     if (!job) return;
-    await applyToJob(job._id);
+
+    // Sirf pehli baar applyToJob call karo (application record banane ke liye).
+    // Agar already applied hai, seedha link khol do — dobara track nahi karna.
+    if (!applied) {
+      await applyToJob(job._id);
+    }
+
     window.open(job.applyLink, "_blank", "noopener,noreferrer");
   };
 
@@ -170,28 +176,23 @@ export default function JobDetail() {
             ))}
           </div>
 
-          <motion.button
-            whileTap={{ scale: applied ? 1 : 0.98 }}
-            onClick={handleApply}
-            disabled={applied}
-            className={`inline-flex items-center gap-2 font-semibold text-sm px-6 py-3 rounded-xl transition-colors ${
-              applied
-                ? "bg-[#EAF1EE] text-[#2F5D50] border border-[#D3E3DC] cursor-default"
-                : "bg-[#12151C] hover:bg-[#2F5D50] text-white"
-            }`}
-          >
-            {applied ? (
-              <>
-                <Check size={16} />
+          <div className="flex items-center gap-3">
+            <motion.button
+              whileTap={{ scale: 0.98 }}
+              onClick={handleApply}
+              className="inline-flex items-center gap-2 font-semibold text-sm px-6 py-3 rounded-xl transition-colors bg-[#12151C] hover:bg-[#2F5D50] text-white"
+            >
+              Apply now
+              <ExternalLink size={16} />
+            </motion.button>
+
+            {applied && (
+              <span className="inline-flex items-center gap-1 text-xs font-semibold text-[#2F5D50] bg-[#EAF1EE] px-2.5 py-1.5 rounded-full">
+                <Check size={12} />
                 Applied
-              </>
-            ) : (
-              <>
-                Apply now
-                <ExternalLink size={16} />
-              </>
+              </span>
             )}
-          </motion.button>
+          </div>
         </motion.div>
 
         <motion.div

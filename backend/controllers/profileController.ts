@@ -3,6 +3,7 @@ import Profile from "../models/profileModel";
 import cloudinary from "../config/cloudinary";
 import OpenAI from "openai";
 import { PDFParse } from "pdf-parse";
+import { retryAsync } from "../utils/retryAsync";
 
 const groq = new OpenAI({
   apiKey: process.env.GROQ_API_KEY,
@@ -46,6 +47,26 @@ const parseResumeText = async (resumeText: string) => {
   return JSON.parse(cleaned);
 };
 
+const buildOverwriteFields = (parsedData: Record<string, any>) => {
+  const fields: Record<string, any> = {};
+ 
+  const stringFields = ["bio", "phone", "location", "linkedin", "github", "portfolio"];
+  for (const field of stringFields) {
+    if (typeof parsedData[field] === "string" && parsedData[field].trim().length > 0) {
+      fields[field] = parsedData[field].trim();
+    }
+  }
+ 
+  const arrayFields = ["skills", "education", "experience", "projects"];
+  for (const field of arrayFields) {
+    if (Array.isArray(parsedData[field]) && parsedData[field].length > 0) {
+      fields[field] = parsedData[field];
+    }
+  }
+ 
+  return fields;
+};
+
 export const getMyProfile = async(req:Request,res:Response)=>{
     try{
        let profile = await Profile.findOne({user:req.user?._id});
@@ -76,6 +97,7 @@ export const updateMyProfile=async(req:Request,res:Response)=>{
     }
 }
 
+
 export const uploadResume = async(req:Request,res:Response)=> {
     try{
         if(!req.file){
@@ -84,7 +106,6 @@ export const uploadResume = async(req:Request,res:Response)=> {
 
         const fileBuffer = req.file.buffer ;
 
-        console.log("before upload result");
         const uploadResult = await new Promise<any>((resolve,reject)=> {
             const stream = cloudinary.uploader.upload_stream({
                 resource_type: "image",
@@ -96,30 +117,49 @@ export const uploadResume = async(req:Request,res:Response)=> {
                 if(error){
                     reject(error);
                 }else{
-                    console.log("resolve : ",resolve);
                     resolve(result);
                 } 
             });
             stream.end(fileBuffer);
         });
-        console.log("After upload result");
-
-        const profile = await Profile.findOneAndUpdate(
-            {user : req.user?._id},
-            { resumeUrl: uploadResult.secure_url},
-            {new:true,upsert:true}
-        );
 
         let parsedData= null ;
         try{
            const parser = new PDFParse({data:fileBuffer});
            const result = await parser.getText();
            await parser.destroy();
-           parsedData = await parseResumeText(result.text.slice(0,6000));
+
+           const extractedText = result.text.slice(0,6000);
+
+           parsedData = await retryAsync(
+             () => parseResumeText(extractedText),
+             {
+               retries: 3,
+               delayMs: 800,
+               isValid: (result) => {
+                 return !!(result && Object.keys(result).length > 0);
+               },
+             }
+           );
+
         }catch(parseErr){
-            console.error("Resume parsing failed (upload still succeeded):", parseErr);
+            console.error("Resume parsing failed after retries (upload still succeeded):", parseErr);
         }
-        console.log("check this : ",parsedData);
+
+        const updateFields: Record<string, any> = {
+            resumeUrl: uploadResult.secure_url,
+        };
+
+        if (parsedData) {
+            Object.assign(updateFields, buildOverwriteFields(parsedData));
+        }
+
+        const profile = await Profile.findOneAndUpdate(
+            {user : req.user?._id},
+            updateFields,
+            {new:true,upsert:true}
+        );
+
         res.status(200).json({ profile,parsedData });
     }catch(err:any){
         res.status(500).json({ message: `Error: ${err.message}` });
