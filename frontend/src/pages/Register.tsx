@@ -30,8 +30,12 @@ export default function Register() {
     setError(null);
 
     try {
-      await register(name, email, password);
-      navigate("/");
+      const data = await register(name, email, password);
+      navigate("/verify-email", {
+        state: {
+          email: data?.email,
+        },
+      });
     } catch (err: any) {
       setError(err.response?.data?.message || "Registration failed. Try again");
     } finally {

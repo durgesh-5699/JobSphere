@@ -9,7 +9,8 @@ const userSchema = new mongoose.Schema(
         isVerified:{type:Boolean,default:false},
         otp:{type:String,default:null},
         otpExpiry:{type:Date,default:null},
-        googleId:{type:String,default:null}
+        resetPasswordToken:{type:String,default:null},
+        resetPasswordExpiry:{type:String,default:null},
     },{timestamps:true}
 );
 

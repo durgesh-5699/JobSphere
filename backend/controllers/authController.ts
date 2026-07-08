@@ -1,6 +1,10 @@
 import { sendOTP } from './../utils/sendOTP';
 import { hashOTP } from './../utils/hashOTP.ts';
+import { compareOTP } from './../utils/compareOTP';
 import { generateOTP } from './../utils/generateOTP.ts';
+import { generateResetToken, hashResetToken } from './../utils/resetToken';
+import { sendResetPasswordEmail } from './../utils/sendResetEmailPassword.ts';
+
 import type { Request, Response } from "express";
 import User from "../models/userModel.ts";
 import bcrypt from "bcryptjs"
@@ -20,21 +24,36 @@ export const registerUser = async(req:Request,res:Response)=>{
     try {
         const {name,email,password} = req.body;
 
+        if(!name || !email || !password){
+            return res.status(400).json({message:"Name, email and password are required."});
+        }
+
         const userExist = await User.findOne({email});
-        if(userExist){
+
+        if(userExist && userExist.isVerified){
             return res.status(400).json({message:"User already exist"});
         }
 
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password,salt);
 
-        const otp = generateOTP();
-        const hashedOtp = hashOTP(otp);
-        const optExpiry = new Date(Date.now() + 5*60*1000);
+        const ot = generateOTP();
+        const hashedOtp = await hashOTP(ot);
+        const otpExpiry = new Date(Date.now() + 5*60*1000);
 
-        const user = await User.create({name,email,password:hashedPassword,isVerified:false,otp:hashedOtp,otpExpiry});
+        let user;
 
-        await sendOTP(email,otp);
+        if(userExist && !userExist.isVerified){
+            userExist.name = name;
+            userExist.password = hashedPassword;
+            userExist.otp = hashedOtp;
+            userExist.otpExpiry = otpExpiry;
+            user = await userExist.save();
+        } else{
+            user = await User.create({name,email,password:hashedPassword,isVerified:false,otp:hashedOtp,otpExpiry});
+        }
+
+        await sendOTP(email,ot);
 
          return res.status(201).json({
             message: "OTP sent successfully. Please verify your email.",
@@ -70,30 +89,26 @@ export const verifyEmail = async (req: Request, res: Response) => {
       });
     }
 
-    // OTP Expiry Check
     if (!user.otpExpiry || user.otpExpiry < new Date()) {
       return res.status(400).json({
         message: "OTP expired. Please request a new OTP.",
       });
     }
 
-    // Compare OTP
-    const hashedOTP = hashOTP(otp);
+    const isOTPValid = await compareOTP(otp, user.otp!);
 
-    if (hashedOTP !== user.otp) {
+    if (!isOTPValid) {
       return res.status(400).json({
         message: "Invalid OTP.",
       });
     }
 
-    // Verify User
     user.isVerified = true;
-    user.otp = null;
-    user.otpExpiry = null;
+    user.otp = undefined;
+    user.otpExpiry = undefined;
 
     await user.save();
 
-    // Login Automatically
     const token = jwt.sign(
       { id: user._id },
       config.JWT_SECRET,
@@ -119,13 +134,65 @@ export const verifyEmail = async (req: Request, res: Response) => {
   }
 };
 
+export const resendOTP = async (req: Request, res: Response) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({
+        message: "Email is required.",
+      });
+    }
+
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found.",
+      });
+    }
+
+    if (user.isVerified) {
+      return res.status(400).json({
+        message: "Email is already verified.",
+      });
+    }
+
+    const otp = generateOTP();
+
+    user.otp = await hashOTP(otp);
+    user.otpExpiry = new Date(Date.now() + 5 * 60 * 1000);
+
+    await user.save();
+
+    await sendOTP(email, otp);
+
+    return res.status(200).json({
+      message: "OTP sent successfully.",
+    });
+
+  } catch (err: any) {
+    return res.status(500).json({
+      message: err.message,
+    });
+  }
+};
+
 export const loginUser = async(req:Request,res:Response)=>{
     try {
         const {email,password}  = req.body;
 
+        if(!email || !password){
+            return res.status(400).json({message:"Email and password are required."});
+        }
+
         const user = await User.findOne({email});
         if(!user){
             return res.status(401).json({message:"User doesn't exits"});
+        }
+
+        if(!user.isVerified){
+            return res.status(403).json({message:"Please verify your email before logging in."});
         }
 
         const match = await bcrypt.compare(password,user.password);
@@ -170,3 +237,71 @@ export const getMe = async(req:Request,res:Response)=>{
     },
     });
 }
+
+
+export const forgotPassword = async (req: Request, res: Response) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ message: "Email is required." });
+    }
+
+    const user = await User.findOne({ email });
+
+    const genericMessage = "If an account exists with this email, a reset link has been sent.";
+
+    if (!user) {
+      return res.status(200).json({ message: genericMessage });
+    }
+
+    const { resetToken, hashedToken } = generateResetToken();
+
+    user.resetPasswordToken = hashedToken;
+    user.resetPasswordExpiry = new Date(Date.now() + 15 * 60 * 1000); // 15 min
+    await user.save();
+
+    const resetLink = `${config.CLIENT_URL}/reset-password/${resetToken}`;
+
+    await sendResetPasswordEmail(email, resetLink);
+
+    return res.status(200).json({ message: genericMessage });
+
+  } catch (err: any) {
+    return res.status(500).json({ message: err.message });
+  }
+};
+
+export const resetPassword = async (req: Request, res: Response) => {
+  try {
+    const { token } = req.params;
+    const { password } = req.body;
+
+    if (!password || password.length < 6) {
+      return res.status(400).json({ message: "Password must be at least 6 characters." });
+    }
+
+    const hashedToken = hashResetToken(token);
+
+    const user = await User.findOne({
+      resetPasswordToken: hashedToken,
+      resetPasswordExpiry: { $gt: new Date() },
+    });
+
+    if (!user) {
+      return res.status(400).json({ message: "Reset link is invalid or has expired." });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    user.password = await bcrypt.hash(password, salt);
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpiry = undefined;
+
+    await user.save();
+
+    return res.status(200).json({ message: "Password reset successful. Please login." });
+
+  } catch (err: any) {
+    return res.status(500).json({ message: err.message });
+  }
+};

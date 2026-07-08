@@ -33,7 +33,7 @@ export const AuthProvider = ({children}:{children:React.ReactNode})=>{
 
     const register = async(name:string,email:string,password:string)=>{
         const res = await axios.post("/api/auth/register",{name,email,password});
-        setUser(res.data.user);
+        return res.data ;
     }
 
     const logout = async ()=>{
@@ -43,7 +43,7 @@ export const AuthProvider = ({children}:{children:React.ReactNode})=>{
     }
 
     return (
-        <AuthContext.Provider value={{user,login,register,logout,loading}}>
+        <AuthContext.Provider value={{user,login,register,logout,loading,checkAuth}}>
             {children}
         </AuthContext.Provider>
     )

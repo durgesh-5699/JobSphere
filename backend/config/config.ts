@@ -29,12 +29,12 @@ if(!process.env.CLOUDINARY_SECRET_KEY){
     throw new Error("CLOUDINARY_SECRET_KEY is not defined");
 }
 
-if(!process.env.RESEND_API_KEY){
-    throw new Error("RESEND_API_KEY is not defined");
+if(!process.env.EMAIL_USER){
+    throw new Error("EMAIL_USER is not defined");
 }
 
-if(!process.env.EMAIL_FROM){
-    throw new Error("EMAIL_FROM is not defined");
+if(!process.env.EMAIL_PASS){
+    throw new Error("EMAIL_PASS is not defined");
 }
 
 const config = {
@@ -45,8 +45,8 @@ const config = {
     CLOUDINARY_CLOUD_NAME : process.env.CLOUDINARY_CLOUD_NAME,
     CLOUDINARY_API_KEY : process.env.CLOUDINARY_API_KEY,
     CLOUDINARY_SECRET_KEY : process.env.CLOUDINARY_SECRET_KEY,
-    RESEND_API_KEY : process.env.RESEND_API_KEY ,
-    EMAIL_FROM : process.env.EMAIL_FROM
+    EMAIL_USER : process.env.EMAIL_USER,
+    EMAIL_PASS : process.env.EMAIL_PASS
 };
 
 export default config ;

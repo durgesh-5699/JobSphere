@@ -13,6 +13,9 @@ import ProfilePage from "./pages/Profile";
 import Rooms from "./pages/Rooms";
 import RoomDetails from "./pages/RoomDetails";
 import UserProfileView from "./pages/UserProfileView";
+import VerifyEmail from "./pages/VerifyEmail";
+import ForgotPassword from "./pages/ForgetPassword";
+import ResetPassword from "./pages/ResetPassword";
 
 export default function App() {
   return (
@@ -95,12 +98,19 @@ export default function App() {
             }
           />
 
-          <Route 
-            path="/users/:userId" 
-            element={<ProtectedRoutes>
-              <UserProfileView />
-            </ProtectedRoutes>} />
+          <Route
+            path="/users/:userId"
+            element={
+              <ProtectedRoutes>
+                <UserProfileView />
+              </ProtectedRoutes>
+            }
+          />
 
+          <Route path="/verify-email" element={<VerifyEmail />} />
+
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password/:token" element={<ResetPassword />} />
         </Routes>
       </main>
       <Footer />
