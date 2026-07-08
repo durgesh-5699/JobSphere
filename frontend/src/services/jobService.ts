@@ -1,14 +1,15 @@
 import axios from "axios";
 import type { Job } from "../types/job.types";
 
-export const fetchJobs = async(search?:string , location?:string):Promise<Job[]>=>{
-    const params :Record<string,string>={};
-    if(search) params.search = search;
-    if(location) params.location = location;
+export const fetchJobs = async (params: {search?: string;location?: string;page?: number;limit?: number;})=>{
+  const res = await axios.get("/api/jobs", { params });
+  return res.data;
+};
 
-    const res = await axios.get("/api/jobs",{params});
-    return res.data.jobs;
-}
+export const fetchJobLocations = async () => {
+  const res = await axios.get("/api/jobs/locations");
+  return res.data;
+};
 
 export const fetchJobById =async(id:string):Promise<Job>=>{
     const res = await axios.get(`/api/jobs/${id}`);

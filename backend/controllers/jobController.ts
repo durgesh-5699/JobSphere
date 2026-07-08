@@ -66,23 +66,27 @@ export const createJob=async(req:Request,res:Response)=>{
 
 export const getJobs = async(req:Request,res:Response)=>{
     try {
-        const {search,location} = req.query;
-        
+        const {search, location, page = "1", limit = "9"} = req.query;
+ 
+        const pageNum = Math.max(parseInt(page as string) || 1, 1);
+        const limitNum = Math.max(parseInt(limit as string) || 9, 1);
+        const skip = (pageNum - 1) * limitNum;
+ 
         const publicRooms = await RoomMembership.find({isPublic:true}).select("_id");
         const myApprovedMemberships = await RoomMembership.find({
             user : req.user?._id,
             status : "approved",
         }).select("room");
-
+ 
         const accessibleRoomIds = [
             ...publicRooms.map((r)=>r._id),
             ...myApprovedMemberships.map((m)=>m.room)
         ];
-
+ 
         const filter:any={room : { $in: accessibleRoomIds}};
-        
+ 
         if(location) filter.location = location;
-        
+ 
         if (search){
             const regex = new RegExp(search as string, "i");
             filter.$or = [
@@ -91,13 +95,42 @@ export const getJobs = async(req:Request,res:Response)=>{
                 { skills: regex },
             ];
         }
-        
-        const jobs = await Job.find(filter).sort({createdAt:-1});
-        res.status(200).json({jobs});
+ 
+        const [jobs, total] = await Promise.all([
+            Job.find(filter).sort({createdAt:-1}).skip(skip).limit(limitNum),
+            Job.countDocuments(filter),
+        ]);
+ 
+        const hasMore = skip + jobs.length < total;
+ 
+        res.status(200).json({ jobs, hasMore, total, page: pageNum });
+ 
     }catch(err:any){
         res.status(500).json({ message: `Error: ${err.message}` });
     }
 }
+
+export const getJobLocations = async (req: Request, res: Response) => {
+    try {
+        const publicRooms = await RoomMembership.find({isPublic:true}).select("_id");
+        const myApprovedMemberships = await RoomMembership.find({
+            user : req.user?._id,
+            status : "approved",
+        }).select("room");
+ 
+        const accessibleRoomIds = [
+            ...publicRooms.map((r)=>r._id),
+            ...myApprovedMemberships.map((m)=>m.room)
+        ];
+ 
+        const locations = await Job.distinct("location", { room: { $in: accessibleRoomIds } });
+ 
+        res.status(200).json({ locations });
+ 
+    } catch (err: any) {
+        res.status(500).json({ message: `Error: ${err.message}` });
+    }
+};
 
 export const getJobById=async(req:Request,res:Response)=>{
     try {

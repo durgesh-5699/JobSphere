@@ -1,10 +1,10 @@
 import { GraduationCap, SearchX } from "lucide-react";
 import { motion } from "framer-motion";
 import JobCard from "../components/jobCard";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import FilterBar from "../components/FilterBar";
 import type { Job } from "../types/job.types";
-import { fetchJobs } from "../services/jobService";
+import { fetchJobs, fetchJobLocations } from "../services/jobService";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 14 },
@@ -15,45 +15,77 @@ const fadeUp = {
   }),
 };
 
+const LIMIT = 9;
+
 export default function Dashboard() {
-  const [jobs,setJobs] = useState<Job[]>([])
-  const [loading,setLoading] = useState(true);
+  const [jobs, setJobs] = useState<Job[]>([]);
+  const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(true);        // initial / filter-change load
+  const [loadingMore, setLoadingMore] = useState(false); // subsequent page loads
+  const [hasMore, setHasMore] = useState(true);
+  const [page, setPage] = useState(1);
+
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [location, setLocation] = useState("");
+  const [locations, setLocations] = useState<string[]>([]);
 
-  useEffect(()=>{
-    loadJobs();
-  },[])
+  const observerRef = useRef<IntersectionObserver | null>(null);
 
-  const loadJobs = async()=>{
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(search), 400);
+    return () => clearTimeout(timer);
+  }, [search]);
+
+  useEffect(() => {
+    fetchJobLocations()
+      .then((data) => setLocations(data.locations))
+      .catch((err) => console.log("failed to fetch locations", err.message));
+  }, []);
+
+  useEffect(() => {
+    loadJobs(1, true);
+  }, [debouncedSearch, location]);
+
+  const loadJobs = async (pageToLoad: number, isNewFilter: boolean = false) => {
     try {
-    setLoading(true);
-      const data = await fetchJobs();
-      setJobs(data);
-    }catch(err:any){
-      console.log("faild to fecth jobs",err.message); 
-    }finally{
+      isNewFilter ? setLoading(true) : setLoadingMore(true);
+
+      const data = await fetchJobs({
+        search: debouncedSearch,
+        location,
+        page: pageToLoad,
+        limit: LIMIT,
+      });
+
+      setJobs((prev) => (isNewFilter ? data.jobs : [...prev, ...data.jobs]));
+      setHasMore(data.hasMore);
+      setTotal(data.total);
+      setPage(pageToLoad);
+
+    } catch (err: any) {
+      console.log("failed to fetch jobs", err.message);
+    } finally {
       setLoading(false);
+      setLoadingMore(false);
     }
   };
 
-  const locations = useMemo(
-    () => Array.from(new Set(jobs.map((job) => job.location))),
-    [jobs],
-  );
+  const lastJobRef = useCallback(
+    (node: HTMLDivElement | null) => {
+      if (loading || loadingMore) return;
+      if (observerRef.current) observerRef.current.disconnect();
 
-  const filteredJobs = useMemo(() => {
-    return jobs.filter((job) => {
-      const matchesSearch =
-        search === "" ||
-        job.title.toLowerCase().includes((search ?? "").toLowerCase()) ||
-        job.skills.some((s) =>
-          s.toLowerCase().includes((search ?? "").toLowerCase()),
-        );
-        const matchesLocation = location === "" || job.location === location;
-        return matchesSearch && matchesLocation;
-    });
-  }, [search, location,jobs]);
+      observerRef.current = new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting && hasMore) {
+          loadJobs(page + 1);
+        }
+      });
+
+      if (node) observerRef.current.observe(node);
+    },
+    [loading, loadingMore, hasMore, page, debouncedSearch, location]
+  );
 
   return (
     <div className="bg-[#F6F5F2] min-h-[calc(100vh-73px)]">
@@ -62,7 +94,7 @@ export default function Dashboard() {
           <div className="inline-flex items-center gap-2 bg-[#FBF3E3] border border-[#EADFC4] rounded-full px-4 py-1.5 mb-4">
             <GraduationCap size={13} className="text-[#C08B2C]" />
             <span className="font-mono text-[11px] font-semibold text-[#8A6316] tracking-[0.1em]">
-              {jobs.length} OPEN ROLES
+              {total} OPEN ROLES
             </span>
           </div>
           <h1 className="font-display text-3xl font-semibold text-[#12151C] tracking-tight mb-2">
@@ -75,9 +107,9 @@ export default function Dashboard() {
 
         <motion.div variants={fadeUp} initial="hidden" animate="show" custom={1}>
           <FilterBar
-            search={search!}
+            search={search}
             setSearch={setSearch}
-            location={location!}
+            location={location}
             setLocation={setLocation}
             locations={locations}
           />
@@ -95,20 +127,38 @@ export default function Dashboard() {
             ))}
             <style>{`@keyframes shimmer { 100% { transform: translateX(100%); } }`}</style>
           </div>
-        ): filteredJobs.length > 0 ? (
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-2">
-            {filteredJobs.map((job, i) => (
-              <motion.div
-                key={job._id}
-                variants={fadeUp}
-                initial="hidden"
-                animate="show"
-                custom={i}
-              >
-                <JobCard job={job} />
-              </motion.div>
-            ))}
-          </div>
+        ) : jobs.length > 0 ? (
+          <>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-2">
+              {jobs.map((job, i) => {
+                const isLast = i === jobs.length - 1;
+                return (
+                  <motion.div
+                    key={job._id}
+                    ref={isLast ? lastJobRef : undefined}
+                    variants={fadeUp}
+                    initial="hidden"
+                    animate="show"
+                    custom={Math.min(i, 8)}
+                  >
+                    <JobCard job={job} />
+                  </motion.div>
+                );
+              })}
+            </div>
+
+            {loadingMore && (
+              <div className="flex justify-center py-8">
+                <span className="w-5 h-5 rounded-full border-2 border-[#12151C]/20 border-t-[#2F5D50] animate-spin" />
+              </div>
+            )}
+
+            {!hasMore && !loadingMore && (
+              <p className="text-center text-xs font-mono text-[#12151C]/35 uppercase tracking-[0.1em] py-8">
+                You've reached the end
+              </p>
+            )}
+          </>
         ) : (
           <motion.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}
