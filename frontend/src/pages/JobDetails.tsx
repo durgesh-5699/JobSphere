@@ -21,7 +21,7 @@ const fadeUp = {
   show: (i: number = 0) => ({
     opacity: 1,
     y: 0,
-    transition: { duration: 0.45, delay: i * 0.08, ease: [0.22, 1, 0.36, 1] },
+    transition: { duration: 0.45, delay: i * 0.08, ease: [0.22, 1, 0.36, 1] as const},
   }),
 };
 
@@ -34,7 +34,7 @@ export default function JobDetail() {
   const [job, setJob] = useState<Job | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const isOwner = job && user && job.postedBy === user.id;
+  const isOwner = job && user && job.postedBy === user._id;
 
   useEffect(() => {
     if (id) loadJob(id);

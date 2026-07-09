@@ -1,4 +1,4 @@
-import { useState, FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Mail, Lock, Eye, EyeOff, ArrowRight, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
@@ -9,7 +9,7 @@ const fadeUp = {
   show: (i: number = 0) => ({
     opacity: 1,
     y: 0,
-    transition: { duration: 0.5, delay: i * 0.09, ease: [0.22, 1, 0.36, 1] },
+    transition: { duration: 0.5, delay: i * 0.09, ease: [0.22, 1, 0.36, 1] as const },
   }),
 };
 

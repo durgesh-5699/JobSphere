@@ -1,4 +1,4 @@
-import { useState, FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 import useAuth from "../context/useAuth";
 import { Link, useNavigate } from "react-router-dom";
 import { ArrowRight, Eye, EyeOff, Sparkles, Lock, Mail, User } from "lucide-react";
@@ -9,7 +9,7 @@ const fadeUp = {
   show: (i: number = 0) => ({
     opacity: 1,
     y: 0,
-    transition: { duration: 0.5, delay: i * 0.09, ease: [0.22, 1, 0.36, 1] },
+    transition: { duration: 0.5, delay: i * 0.09, ease: [0.22, 1, 0.36, 1] as const },
   }),
 };
 
@@ -30,7 +30,7 @@ export default function Register() {
     setError(null);
 
     try {
-      const data = await register(name, email, password);
+      const data: any = await register(name, email, password);
       navigate("/verify-email", {
         state: {
           email: data?.email,

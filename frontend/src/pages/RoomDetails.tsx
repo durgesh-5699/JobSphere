@@ -11,7 +11,7 @@ import {
 } from "../services/roomService";
 import useAuth from "../context/useAuth";
 import JobCard from "../components/jobCard";
-import type { Room, RoomMembership } from "../types/room.types";
+import type { Room, RoomMember } from "../types/room.types";
 import type { Job } from "../types/job.types";
 
 const fadeUp = {
@@ -19,7 +19,7 @@ const fadeUp = {
   show: (i: number = 0) => ({
     opacity: 1,
     y: 0,
-    transition: { duration: 0.4, delay: Math.min(i, 6) * 0.06, ease: [0.22, 1, 0.36, 1] },
+    transition: { duration: 0.4, delay: Math.min(i, 6) * 0.06, ease: [0.22, 1, 0.36, 1] as const },
   }),
 };
 
@@ -30,7 +30,6 @@ const toggleBtnSm = (active: boolean) =>
       : "border-[#E4E2DC] text-[#12151C]/45 hover:bg-[#F6F5F2]"
   }`;
 
-// Deterministic soft accent for a person's avatar chip, based on their name
 const avatarPalette = [
   { bg: "#EAF1EE", fg: "#2F5D50" },
   { bg: "#FBF3E3", fg: "#8A6316" },
@@ -49,12 +48,11 @@ export default function RoomDetail(){
   const [room, setRoom] = useState<Room | null>(null);
   const [myStatus, setMyStatus] = useState<"pending" | "approved" | "rejected" | null>(null);
   const [requests, setRequests] = useState<any[]>([]);
-  const [members, setMembers] = useState<RoomMembership[]>([]);
+  const [members, setMembers] = useState<RoomMember[]>([]);
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
   const [joining, setJoining] = useState(false);
 
-  // Settings form
   const [editName, setEditName] = useState("");
   const [editDescription, setEditDescription] = useState("");
   const [editIsPublic, setEditIsPublic] = useState(true);
@@ -79,13 +77,12 @@ export default function RoomDetail(){
       const memberList = await fetchRoomMembers(roomId);
       setMembers(memberList);
 
-      // Jobs sirf fetch karo agar access hai (approved member ya public room)
       if (data.room.isPublic || data.myStatus === "approved") {
         const jobList = await fetchRoomJobs(roomId);
         setJobs(jobList);
       }
 
-      if (data.room.owner === user?.id) {
+      if (data.room.owner === user?._id) {
         const pending = await fetchPendingRequests(roomId);
         setRequests(pending);
       }
@@ -177,7 +174,7 @@ export default function RoomDetail(){
     );
   }
 
-  const isOwner = room.owner === user?.id;
+  const isOwner = room.owner === user?._id;
   const initials = room.name.slice(0, 2).toUpperCase();
 
   return (
