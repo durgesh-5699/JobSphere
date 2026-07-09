@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@getbrevo/brevo':
+        specifier: ^6.0.2
+        version: 6.0.2
       bcryptjs:
         specifier: ^3.0.3
         version: 3.0.3
@@ -257,6 +260,10 @@ packages:
     engines: {node: '>=18'}
     cpu: [x64]
     os: [win32]
+
+  '@getbrevo/brevo@6.0.2':
+    resolution: {integrity: sha512-yxyacx4wkuWcCbFDdFE3RxklaHSGXEP3d0gZaxPy+9aBquvl4ksr7IQgbRCcF8crx5aRvpStVBLeh5iCbWHJrg==}
+    engines: {node: '>=18.0.0'}
 
   '@mongodb-js/saslprep@1.4.12':
     resolution: {integrity: sha512-QAfAMwNgnYxZ2C6D1HgeP7Gc4i/uvJRim415PCIL9ptRxWMNbWeLBYb2/9R4pGKny/s1FVu2JA2cxCUBUOggrA==}
@@ -741,7 +748,7 @@ packages:
     resolution: {integrity: sha512-WMwm9LhRUo+WUaRN+vRuETqG89IgZphVSNkdFgeb6sS/E4OrDIN7t48CAewSHXc6C8lefD8KKfr5vY61brQlow==}
 
   emitter@http://github.com/component/emitter/archive/1.0.1.tar.gz:
-    resolution: {integrity: sha512-r/UcFj7JS3lRjv9cgYjgpDNbAsGUdqU64n6ZUOgSF7s1UFBbGu7pUDwKEjHu9NBCy6j2AmmjNW4rijR4De65eA==, tarball: http://github.com/component/emitter/archive/1.0.1.tar.gz}
+    resolution: {tarball: http://github.com/component/emitter/archive/1.0.1.tar.gz}
     version: 1.0.1
 
   encodeurl@2.0.0:
@@ -880,7 +887,7 @@ packages:
     engines: {node: '>= 6'}
 
   global@https://github.com/component/global/archive/v2.0.1.tar.gz:
-    resolution: {integrity: sha512-O91OcV/NbdmQJPHaRu2ekSP7bqFRLWgqSwaJvqHPZHUwmHBagQYTOra29+LnzzG3lZkXH1ANzHzfCxtAPM9HMA==, tarball: https://github.com/component/global/archive/v2.0.1.tar.gz}
+    resolution: {tarball: https://github.com/component/global/archive/v2.0.1.tar.gz}
     version: 2.0.1
 
   gopd@1.2.0:
@@ -1627,7 +1634,7 @@ packages:
         optional: true
 
   xmlhttprequest@https://github.com/LearnBoost/node-XMLHttpRequest/archive/0f36d0b5ebc03d85f860d42a64ae9791e1daa433.tar.gz:
-    resolution: {integrity: sha512-TVSZwoeUQ7OKhb8jnQdSxGFz+lm4MGWmhG0deeYg85VQT74x5LcSrKeXHE0ZIzEycgqQ5mF8r8e1AykA7TpNAQ==, tarball: https://github.com/LearnBoost/node-XMLHttpRequest/archive/0f36d0b5ebc03d85f860d42a64ae9791e1daa433.tar.gz}
+    resolution: {tarball: https://github.com/LearnBoost/node-XMLHttpRequest/archive/0f36d0b5ebc03d85f860d42a64ae9791e1daa433.tar.gz}
     version: 1.5.0
     engines: {node: '>=0.4.0'}
 
@@ -1710,6 +1717,8 @@ snapshots:
 
   '@esbuild/win32-x64@0.28.1':
     optional: true
+
+  '@getbrevo/brevo@6.0.2': {}
 
   '@mongodb-js/saslprep@1.4.12':
     dependencies:

@@ -37,6 +37,12 @@ if(!process.env.EMAIL_PASS){
     throw new Error("EMAIL_PASS is not defined");
 }
 
+if(!process.env.BREVO_API_KEY){
+    throw new Error("EMAIL_PASS is not defined");
+}
+
+
+
 const config = {
     MONGO_URI : process.env.MONGO_URI,
     CLIENT_URL : process.env.CLIENT_URL,
@@ -46,7 +52,8 @@ const config = {
     CLOUDINARY_API_KEY : process.env.CLOUDINARY_API_KEY,
     CLOUDINARY_SECRET_KEY : process.env.CLOUDINARY_SECRET_KEY,
     EMAIL_USER : process.env.EMAIL_USER,
-    EMAIL_PASS : process.env.EMAIL_PASS
+    EMAIL_PASS : process.env.EMAIL_PASS,
+    BREVO_API_KEY : process.env.BREVO_API_KEY,
 };
 
 export default config ;
