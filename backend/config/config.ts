@@ -38,7 +38,7 @@ if(!process.env.EMAIL_PASS){
 }
 
 if(!process.env.BREVO_API_KEY){
-    throw new Error("EMAIL_PASS is not defined");
+    throw new Error("BREVO_API_KEY is not defined");
 }
 
 
