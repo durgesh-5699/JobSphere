@@ -6,6 +6,7 @@
   "type": "module",
   "scripts": {
     "dev": "tsx --watch server.ts",
+    "start": "tsx server.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -30,7 +31,9 @@
     "openai": "^6.45.0",
     "otp-generator": "^4.0.1",
     "pdf-parse": "^2.4.5",
-    "resend": "^6.17.1"
+    "resend": "^6.17.1",
+    "tsx": "^4.23.0",
+    "typescript": "^6.0.3"
   },
   "devDependencies": {
     "@types/cookie-parser": "^1.4.10",
@@ -41,8 +44,6 @@
     "@types/multer": "^2.2.0",
     "@types/nodemailer": "^8.0.1",
     "@types/pdf-parse": "^1.1.5",
-    "nodemon": "^3.1.14",
-    "tsx": "^4.23.0",
-    "typescript": "^6.0.3"
+    "nodemon": "^3.1.14"
   }
 }
