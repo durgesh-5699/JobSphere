@@ -7,7 +7,7 @@ export const createRoom = async(data:{
     isPublic:boolean;
 }):Promise<Room>=>{
     const res = await axios.post("/api/rooms",data);
-    return res.data.rooms ;
+    return res.data.room ;
 };
 
 
@@ -17,7 +17,7 @@ export const fetchPublicRooms = async (): Promise<Room[]> => {
 };
 
 export const fetchMyRooms = async():Promise<Room[]>=>{
-    const res = await axios.get("api/rooms/mine");
+    const res = await axios.get("/api/rooms/mine");
     return res.data.rooms ;
 }
 
@@ -55,7 +55,7 @@ export const fetchRoomMembers=async(roomId: string):Promise<RoomMember[]>=>{
   return res.data.members;
 };
 
-export const updateRoom = async(roomId:string,data:{name?:string; desciription?:string; isPublic?:boolean}):Promise<Room>=>{
+export const updateRoom = async(roomId:string,data:{name?:string; description?:string; isPublic?:boolean}):Promise<Room>=>{
   const res = await axios.patch(`/api/rooms/${roomId}`, data);
   return res.data.room;
 };

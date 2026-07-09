@@ -5,8 +5,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { MailCheck, ShieldCheck } from "lucide-react";
 import useAuth from "../context/useAuth";
 
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5000";
-
 export default function VerifyEmail() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -83,16 +81,10 @@ export default function VerifyEmail() {
     setSuccess("");
 
     try {
-      await axios.post(
-        `${API_BASE}/api/auth/verify-email`,
-        {
-          email,
-          otp,
-        },
-        {
-          withCredentials: true,
-        }
-      );
+      await axios.post("/api/auth/verify-email", {
+        email,
+        otp,
+      });
 
       await checkAuth();
       navigate("/");
@@ -109,12 +101,9 @@ export default function VerifyEmail() {
       setError("");
       setSuccess("");
 
-      const res = await axios.post(
-        `${API_BASE}/api/auth/resend-otp`,
-        {
-          email,
-        }
-      );
+      const res = await axios.post("/api/auth/resend-otp", {
+        email,
+      });
 
       setSuccess(res.data.message);
       setOtp("");

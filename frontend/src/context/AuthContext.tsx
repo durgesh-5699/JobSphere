@@ -4,6 +4,7 @@ import axios from "axios";
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+axios.defaults.baseURL = import.meta.env.VITE_API_URL || "";
 axios.defaults.withCredentials = true;
 
 export const AuthProvider = ({children}:{children:React.ReactNode})=>{
@@ -37,7 +38,6 @@ export const AuthProvider = ({children}:{children:React.ReactNode})=>{
     }
 
     const logout = async ()=>{
-        console.log("this is working fine");
         await axios.post("/api/auth/logout");
         setUser(null);
     }
