@@ -9,6 +9,7 @@ const transporter = nodemailer.createTransport({
         user: config.EMAIL_USER,
         pass: config.EMAIL_PASS,
     },
+    family :4,
 });
 
 export default transporter;
