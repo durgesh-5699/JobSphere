@@ -10,9 +10,11 @@ import applicationRouter from "./routes/applicationRoutes.ts";
 import aiRouter from "./routes/aiRoutes.ts";
 import profileRouter from "./routes/profileRoutes.ts";
 import roomRouter from "./routes/roomRoutes.ts";
+import dns from "dns"
 
 connectDB();
 
+dns.setDefaultResultOrder("ipv4first");
 const app = express();
 app.use(express.json());
 app.use(cookieParser());
