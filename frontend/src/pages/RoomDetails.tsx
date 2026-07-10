@@ -82,7 +82,7 @@ export default function RoomDetail(){
         setJobs(jobList);
       }
 
-      if (data.room.owner === user?._id) {
+      if (data.room.owner === user?.id) {
         const pending = await fetchPendingRequests(roomId);
         setRequests(pending);
       }
@@ -174,7 +174,7 @@ export default function RoomDetail(){
     );
   }
 
-  const isOwner = room.owner === user?._id;
+  const isOwner = room.owner === user?.id;
   const initials = room.name.slice(0, 2).toUpperCase();
 
   return (

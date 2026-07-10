@@ -34,7 +34,7 @@ export default function JobDetail() {
   const [job, setJob] = useState<Job | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const isOwner = job && user && job.postedBy === user._id;
+  const isOwner = job && user && job.postedBy === user.id;
 
   useEffect(() => {
     if (id) loadJob(id);

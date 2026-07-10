@@ -11,6 +11,7 @@ import aiRouter from "./routes/aiRoutes.ts";
 import profileRouter from "./routes/profileRoutes.ts";
 import roomRouter from "./routes/roomRoutes.ts";
 import dns from "dns"
+import notificationRouter from "./routes/notificationRoutes.ts";
 
 connectDB();
 
@@ -31,6 +32,7 @@ app.use("/api/applications",applicationRouter);
 app.use("/api/ai",aiRouter);
 app.use("/api/profile",profileRouter);
 app.use("/api/rooms",roomRouter);
+app.use("/api/notifications",notificationRouter);
 
 const PORT = process.env.PORT;
 app.listen(PORT,()=>{

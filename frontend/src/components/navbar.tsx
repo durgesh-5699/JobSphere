@@ -13,6 +13,7 @@ import {
   Users,
 } from "lucide-react";
 import useAuth from "../context/useAuth";
+import NotificationBell from "./NotificationBell";
 
 export default function Navbar() {
   const { user, logout } = useAuth();
@@ -93,6 +94,7 @@ export default function Navbar() {
         </div>
 
         <div className="hidden md:flex items-center gap-3">
+          {user && <NotificationBell/> }
           {user ? (
             <div className="relative" ref={userMenuRef}>
               <button

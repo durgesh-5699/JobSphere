@@ -2,6 +2,7 @@ import type {Request,Response} from "express";
 import Room from "../models/roomModel";
 import RoomMembership from "../models/roomMembershipModel";
 import Job from "../models/jobModel"
+import Notification from "../models/notificationModel";
 const escapeRegex = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 export const createRoom = async(req:Request,res:Response)=>{
@@ -94,8 +95,16 @@ export const joinRoom = async(req:Request,res:Response)=>{
             status:room.isPublic ? "approved":"pending",
         });
 
+        if(!room.isPublic){
+            await Notification.create({
+                user:room.owner,
+                type:"join_request",
+                title:"New join request",
+                message: `${req.user?.name} requested to join "${room.name}"`,
+                link: `/rooms/${room._id}`,
+            })
+        }
         res.status(201).json({membership});
-
     }catch(err:any){
         res.status(500).json({ message: `Error: ${err.message}` });
     }
@@ -142,6 +151,18 @@ export const respondToRequest = async(req:Request,res:Response)=>{
 
         membership.status = action === "approve" ? "approved" : "rejected";
         await membership.save();
+
+        await Notification.create({
+            user: membership.user,
+            type: action === "approve" ? "request_approved" : "request_rejected",
+            title: action === "approve" ? "Request approved!" : "Request rejected",
+            message:
+                action === "approve"
+                ? `Your request to join "${room.name}" was approved`
+                : `Your request to join "${room.name}" was rejected`,
+                link: `/rooms/${room._id}`,
+        });
+
         res.status(200).json({ membership });
 
     }catch(err:any){

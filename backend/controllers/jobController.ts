@@ -2,6 +2,7 @@ import type { Request, Response } from "express";
 import Job from "../models/jobModel";
 import RoomMembership from "../models/roomMembershipModel";
 import Room from "../models/roomModel"
+import Notification from "../models/notificationModel";
 
 const normalizeUrl=(url:string):string=>{
     try{
@@ -57,6 +58,24 @@ export const createJob=async(req:Request,res:Response)=>{
         }
 
         const job = await Job.create({title,company,description,applyLink,location,skills : skills || [],salary,postedBy:req.user?._id,room})
+
+        const roomMembers = await RoomMembership.find({
+            room:job.room,
+            status:"approved",
+            user:{$ne: req.user?._id},
+        });
+
+        const notifications = roomMembers.map((member) => ({
+            user: member.user,
+            type: "new_job" as const,
+            title: "New job posted",
+            message: `${job.title} at ${job.company} was just posted`,
+            link: `/jobs/${job._id}`,
+        }));
+
+        if(notifications.length>0){
+            await Notification.insertMany(notifications);
+        }
 
         res.status(201).json({job});
     }catch(err:any){
