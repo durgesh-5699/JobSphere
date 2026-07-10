@@ -78,11 +78,13 @@ JSON shape must be exactly:
   "location": string,
   "skills": string[],
   "salary": string,
-  "applyLink": string
+  "applyLink": string,
+  "requirements": string[]
 }
 If a field isn't mentioned in the text, use an empty string for it (empty array for skills).
 Keep "description" as a clean, well-formatted paragraph summarizing the role — rewrite for clarity, don't just copy-paste raw text.
 Extract skills as an array of short tags (e.g. "React", "Node.js"), not full sentences.
+"requirements" should be short bullet points of eligibility/experience criteria (e.g. "B.Tech in CS or related field", "1+ years experience with React", "Strong DSA fundamentals") — separate from skills (which are just tech tags).
 If the input is JSON-LD structured data, map fields like "title", "hiringOrganization.name", "jobLocation.address", "baseSalary" directly — they are usually accurate and complete.
 If the text is scraped webpage content (not structured data), ignore unrelated navigation/footer/ad text and focus only on the actual job posting content.`;
 

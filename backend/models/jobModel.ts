@@ -10,6 +10,7 @@ export interface IJob extends Document{
   salary?: string;
   postedBy: mongoose.Types.ObjectId;
   room: mongoose.Types.ObjectId;
+  requirements : string[];
 }
 
 const jobSchema = new mongoose.Schema<IJob>({
@@ -22,6 +23,7 @@ const jobSchema = new mongoose.Schema<IJob>({
     salary:{type:String},
     postedBy:{type:mongoose.Schema.Types.ObjectId,ref:"user",required:true},
     room: {type:Schema.Types.ObjectId, ref:"Room", required:true},
+    requirements : {type:[String], default :[]},
 },{timestamps:true});
 
 const Job = mongoose.model<IJob>("Job",jobSchema);
