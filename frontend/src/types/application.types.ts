@@ -8,6 +8,7 @@ export interface Application {
     applyLink: string;
     location: string;
     skills: string[];
+    requirements:string[];
     salary?: string;
     postedBy: string;
     createdAt: string;

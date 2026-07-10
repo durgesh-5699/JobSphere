@@ -15,7 +15,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import useApplications from "../context/useApplication";
 import { useEffect, useState } from "react";
-import type { Job } from "../types/job.types";
+import type { Job } from "../types/types.ts";
 import { fetchJobById, deleteJob } from "../services/jobService";
 import useAuth from "../context/useAuth";
 import type { MatchResult } from "../types/types";
