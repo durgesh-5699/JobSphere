@@ -11,6 +11,7 @@ import {
   LogOut,
   ChevronDown,
   Users,
+  Bookmark,
 } from "lucide-react";
 import useAuth from "../context/useAuth";
 import NotificationBell from "./NotificationBell";
@@ -133,6 +134,10 @@ export default function Navbar() {
                     <Link to="/applied-jobs" onClick={closeUserMenu} className={userLinkClass("/applied-jobs")}>
                       <Send size={16} className="text-[#12151C]/35" />
                       Applied Jobs
+                    </Link>
+                    <Link to="/saved-jobs" onClick={closeUserMenu} className={userLinkClass("/saved-jobs")}>
+                      <Bookmark size={16} className="text-slate-400" />
+                      Saved Jobs
                     </Link>
 
                     <div className="border-t border-[#EDEBE5] my-1.5" />

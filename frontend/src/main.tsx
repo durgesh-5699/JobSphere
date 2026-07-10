@@ -4,12 +4,15 @@ import App from "./App.tsx";
 import { BrowserRouter } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext.tsx";
 import { ApplicationProvider } from "./context/ApplicationContext.tsx";
+import { BookmarkProvider } from "./context/bookmarkContext.tsx";
 
 createRoot(document.getElementById("root")!).render(
   <BrowserRouter>
     <AuthProvider>
       <ApplicationProvider>
-        <App />
+        <BookmarkProvider>
+          <App />
+        </BookmarkProvider>
       </ApplicationProvider>
     </AuthProvider>
   </BrowserRouter>,

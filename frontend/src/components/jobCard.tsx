@@ -1,8 +1,9 @@
 import { useNavigate } from "react-router-dom";
-import { MapPin, Building2, IndianRupee, Trash2, Clock } from "lucide-react";
+import { MapPin, Building2, IndianRupee, Trash2, Clock, BookmarkCheck, Bookmark } from "lucide-react";
 import { motion } from "framer-motion";
 import type { Job } from "../types/types.ts";
 import useApplications from "../context/useApplication";
+import { useBookmarks } from "../context/useBookmark.ts";
 
 interface JobCardProps {
   job: Job;
@@ -13,6 +14,14 @@ export default function JobCard({ job, onDelete }: JobCardProps){
   const navigate = useNavigate();
   const { isApplied } = useApplications();
   const applied = isApplied(job._id);
+
+  const { isBookmarked, toggleBookmark } = useBookmarks();
+  const bookmarked = isBookmarked(job._id);
+
+  const handleBookmarkClick = (e: React.MouseEvent) => {
+    e.stopPropagation(); 
+    toggleBookmark(job._id);
+  };
 
   const timeAgo = (dateStr: string) => {
     const diff = Date.now() - new Date(dateStr).getTime();
@@ -58,6 +67,16 @@ export default function JobCard({ job, onDelete }: JobCardProps){
               {timeAgo(job.createdAt)}
             </span>
           </div>
+
+          <button
+            onClick={handleBookmarkClick}
+            className={`p-1.5 rounded-lg transition-colors ${
+              bookmarked ? "text-amber-500" : "text-slate-400 hover:text-amber-500 hover:bg-amber-50"
+            }`}
+            aria-label="Bookmark"
+          >
+            {bookmarked ? <BookmarkCheck size={16} /> : <Bookmark size={16} />}
+          </button>
 
           {onDelete && (
             <button

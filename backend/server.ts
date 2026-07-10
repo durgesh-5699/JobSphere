@@ -13,6 +13,7 @@ import roomRouter from "./routes/roomRoutes.ts";
 import dns from "dns"
 import notificationRouter from "./routes/notificationRoutes.ts";
 import { startDeadlineReminderCron } from "./jobs/deadlineReminder.ts";
+import bookmarkRouter from "./routes/bookmarkRoutes.ts";
 
 connectDB();
 
@@ -34,6 +35,7 @@ app.use("/api/ai",aiRouter);
 app.use("/api/profile",profileRouter);
 app.use("/api/rooms",roomRouter);
 app.use("/api/notifications",notificationRouter);
+app.use("/api/bookmarks", bookmarkRouter);
 
 const PORT = process.env.PORT;
 app.listen(PORT,()=>{

@@ -12,7 +12,7 @@ import {
 import useAuth from "../context/useAuth";
 import JobCard from "../components/jobCard";
 import type { Room, RoomMember } from "../types/room.types";
-import type { Job } from "../types/job.types";
+import type { Job } from "../types/types.ts";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 14 },

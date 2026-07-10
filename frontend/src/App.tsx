@@ -17,6 +17,7 @@ import VerifyEmail from "./pages/VerifyEmail";
 import ForgotPassword from "./pages/ForgetPassword";
 import ResetPassword from "./pages/ResetPassword";
 import PublicRoute from "./pages/PublicRoute";
+import SavedJobs from "./pages/savedJobs";
 
 export default function App() {
   return (
@@ -40,6 +41,7 @@ export default function App() {
             <Route path="/post-job" element={<PostJob />} />
             <Route path="/my-jobs" element={<MyJobs />} />
             <Route path="/applied-jobs" element={<AppliedJobs />} />
+            <Route path="/saved-jobs" element={<SavedJobs />} />
 
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/rooms" element={<Rooms />} />

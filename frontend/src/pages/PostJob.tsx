@@ -64,6 +64,8 @@ export default function PostJob() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const [requirements,setRequirements] = useState<String[]>([]);
+
   const [rawText, setRawText] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
   const [aiError, setAiError] = useState("");
