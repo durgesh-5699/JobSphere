@@ -27,10 +27,11 @@ export interface Job {
   applyLink: string;
   location: string;
   skills: string[];
+  requirements:string[];
   salary?: string;
   postedBy: string;
   createdAt: string;
-  deadline:string;
+  deadline?:string;
 }
 
 export interface JobFilters {

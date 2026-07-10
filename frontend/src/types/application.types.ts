@@ -1,6 +1,6 @@
 export interface Application {
     id: string;
-  job: {
+    job: {
     _id: string;
     title: string;
     company: string;
@@ -12,6 +12,7 @@ export interface Application {
     salary?: string;
     postedBy: string;
     createdAt: string;
+    deadline?:string;
   };
   appliedAt: string;
 }
