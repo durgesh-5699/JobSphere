@@ -1,5 +1,5 @@
 import axios from "axios";
-import type { Notification } from "../types/notification.types";
+import type { Notification } from "../types/types.ts";
 
 export const fetchNotifications = async():Promise<Notification[]>=>{
     const res = await axios.get("/api/notifications");

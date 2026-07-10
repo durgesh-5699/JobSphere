@@ -6,4 +6,5 @@ export interface ParsedJobData {
   skills: string[];
   salary: string;
   applyLink: string;
+  deadline:string;
 }

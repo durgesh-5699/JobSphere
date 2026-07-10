@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
-import { MapPin, Building2, IndianRupee, Trash2 } from "lucide-react";
+import { MapPin, Building2, IndianRupee, Trash2, Clock } from "lucide-react";
 import { motion } from "framer-motion";
-import type { Job } from "../types/job.types";
+import type { Job } from "../types/types.ts";
 import useApplications from "../context/useApplication";
 
 interface JobCardProps {
@@ -26,6 +26,14 @@ export default function JobCard({ job, onDelete }: JobCardProps){
     e.stopPropagation(); 
     onDelete?.(job._id);
   };
+
+  const daysUntilDeadline = (deadline?: string) => {
+    if (!deadline) return null;
+    const diff = new Date(deadline).getTime() - Date.now();
+    return Math.ceil(diff / (1000 * 60 * 60 * 24));
+  };
+
+  const daysLeft = daysUntilDeadline(job.deadline);
 
   return (
     <motion.div
@@ -82,6 +90,17 @@ export default function JobCard({ job, onDelete }: JobCardProps){
           </span>
         ))}
       </div>
+
+      {daysLeft !== null && daysLeft >= 0 && (
+        <div
+          className={`flex items-center gap-1 text-xs font-semibold mb-3 ${
+            daysLeft <= 3 ? "text-red-600" : "text-slate-500"
+          }`}
+        >
+          <Clock size={12} />
+          {daysLeft === 0 ? "Closes today!" : `${daysLeft} day${daysLeft > 1 ? "s" : ""} left to apply`}
+        </div>
+      )}
 
       <div className="flex items-center justify-between pt-4 border-t border-[#EDEBE5]">
         <div className="flex items-center gap-1.5 text-xs text-[#12151C]/50">

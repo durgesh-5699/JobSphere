@@ -11,6 +11,7 @@ export interface IJob extends Document{
   postedBy: mongoose.Types.ObjectId;
   room: mongoose.Types.ObjectId;
   requirements : string[];
+  deadline? : Date;
 }
 
 const jobSchema = new mongoose.Schema<IJob>({
@@ -24,6 +25,7 @@ const jobSchema = new mongoose.Schema<IJob>({
     postedBy:{type:mongoose.Schema.Types.ObjectId,ref:"user",required:true},
     room: {type:Schema.Types.ObjectId, ref:"Room", required:true},
     requirements : {type:[String], default :[]},
+    deadline : {type:Date}
 },{timestamps:true});
 
 const Job = mongoose.model<IJob>("Job",jobSchema);

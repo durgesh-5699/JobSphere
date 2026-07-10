@@ -15,9 +15,11 @@ const normalizeUrl=(url:string):string=>{
 
 export const createJob=async(req:Request,res:Response)=>{
     try {
-        const {title,company,description,applyLink,location,skills,salary,room,requirements} = req.body;
+        const {title,company,description,applyLink,location,skills,salary,room,requirements,deadline} = req.body;
 
-        if(!title || !company || !description || !applyLink || !location || !skills || !salary || !room || !requirements){
+        console.log(title,company,description,applyLink,location,skills,salary,room,requirements,deadline);
+
+        if(!title || !company || !description || !applyLink || !location || !skills || !room){
             return res.status(400).json({message:"please fill all required fields, including room"});
         }
 
@@ -58,10 +60,11 @@ export const createJob=async(req:Request,res:Response)=>{
         const job = await Job.create({
             title,company,description,applyLink,location,
             skills : skills || [],
-            salary,
+            salary : salary || undefined,
             postedBy:req.user?._id,
             room,
             requirements:requirements || [],
+            deadline : deadline || undefined ,
         })
 
         const roomMembers = await RoomMembership.find({

@@ -1,13 +1,13 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { Bell, Users, Check, X, Briefcase, CheckCheck } from "lucide-react";
+import { Bell, Users, Check, X, Briefcase, CheckCheck, Clock } from "lucide-react";
 import {
   fetchNotifications,
   fetchUnreadCount,
   markAsRead,
   markAllAsRead,
 } from "../services/notificationService";
-import type { Notification } from "../types/notification.types";
+import type { Notification } from "../types/types.ts";
 import useAuth from "../context/useAuth";
 
 const iconForType = (type: Notification["type"]) => {
@@ -20,6 +20,8 @@ const iconForType = (type: Notification["type"]) => {
       return <X size={15} className="text-red-500" />;
     case "new_job":
       return <Briefcase size={15} className="text-amber-500" />;
+    case "deadline_reminder":
+      return <Clock size={15} className="text-red-500" />;
   }
 };
 

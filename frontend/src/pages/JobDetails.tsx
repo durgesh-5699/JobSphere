@@ -9,6 +9,7 @@ import {
   Trash2,
   X,
   Sparkles,
+  Clock,
 } from "lucide-react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -190,6 +191,14 @@ export default function JobDetail() {
                 <Calendar size={14} className="text-[#12151C]/55" />
                 Posted {formatDate(job.createdAt)}
               </div>
+              {job.deadline && (
+                <div className={`flex items-center gap-1.5 font-semibold ${
+                  new Date(job.deadline).getTime() - Date.now() < 3 * 24 * 60 * 60 * 1000 ? "text-red-600" : "text-slate-500"
+                }`}>
+                  <Clock size={14} />
+                  Apply by {new Date(job.deadline).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
+                </div>
+              )}
             </div>
 
             <div className="flex flex-wrap gap-2 mb-6">

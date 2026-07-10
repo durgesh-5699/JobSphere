@@ -12,6 +12,7 @@ import profileRouter from "./routes/profileRoutes.ts";
 import roomRouter from "./routes/roomRoutes.ts";
 import dns from "dns"
 import notificationRouter from "./routes/notificationRoutes.ts";
+import { startDeadlineReminderCron } from "./jobs/deadlineReminder.ts";
 
 connectDB();
 
@@ -36,5 +37,6 @@ app.use("/api/notifications",notificationRouter);
 
 const PORT = process.env.PORT;
 app.listen(PORT,()=>{
-    console.log(`Server is running on ${PORT}`)
+    console.log(`Server is running on ${PORT}`);
+    startDeadlineReminderCron();
 })
