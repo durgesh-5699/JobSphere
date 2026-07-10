@@ -202,7 +202,7 @@ export default function JobDetail() {
             </div>
 
             <div className="flex flex-wrap gap-2 mb-6">
-              {job.skills.map((skill) => (
+              {job.skills.map((skill:string) => (
                 <span
                   key={skill}
                   className="font-mono text-[11px] font-medium text-[#2F5D50] bg-[#EAF1EE] px-2.5 py-1.5 rounded-md"

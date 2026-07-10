@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import JobCard from "../components/jobCard";
 import { useCallback, useEffect, useRef, useState } from "react";
 import FilterBar from "../components/FilterBar";
-import type { Job } from "../types/job.types";
+import type { Job } from "../types/types.ts";
 import { fetchJobs, fetchJobLocations } from "../services/jobService";
 
 const fadeUp = {

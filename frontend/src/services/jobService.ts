@@ -1,5 +1,5 @@
 import axios from "axios";
-import type { Job } from "../types/job.types";
+import type { Job } from "../types/types.ts";
 
 export const fetchJobs = async (params: {search?: string;location?: string;page?: number;limit?: number;})=>{
   const res = await axios.get("/api/jobs", { params });

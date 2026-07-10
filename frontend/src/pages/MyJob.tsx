@@ -3,7 +3,7 @@ import { Briefcase, Plus } from "lucide-react";
 import { motion } from "framer-motion";
 import JobCard from "../components/jobCard";
 import { useEffect, useState } from "react";
-import type { Job } from "../types/job.types";
+import type { Job } from "../types/types.ts";
 import { deleteJob, fetchMyJobs } from "../services/jobService";
 
 const fadeUp = {
