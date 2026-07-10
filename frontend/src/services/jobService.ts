@@ -21,7 +21,7 @@ export const fetchMyJobs = async():Promise<Job[]>=>{
     return res.data.jobs;
 }
 
-export const createJob = async(jobData: Omit<Job, "_id" | "postedBy" | "createdAt"> & { room: string }):Promise<Job>=>{
+export const createJob = async(jobData: Omit<Job, "_id" | "postedBy" | "createdAt"> & { room: string ; requirements?:string[]}):Promise<Job>=>{
     const res = await axios.post("/api/jobs",jobData);
     return res.data.job ;
 }

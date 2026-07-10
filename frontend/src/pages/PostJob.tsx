@@ -11,6 +11,7 @@ import {
   Send,
   Sparkles,
   X,
+  ListChecks,
 } from "lucide-react";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
@@ -61,10 +62,12 @@ export default function PostJob() {
 
   const [skills, setSkills] = useState<string[]>([]);
   const [skillInput, setSkillInput] = useState("");
+
+  const [requirements, setRequirements] = useState<string[]>([]);
+  const [requirementInput, setRequirementInput] = useState("");
+
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-
-  const [requirements,setRequirements] = useState<String[]>([]);
 
   const [rawText, setRawText] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
@@ -83,8 +86,6 @@ export default function PostJob() {
   useEffect(() => {
     Promise.all([fetchPublicRooms(), fetchMyRooms()])
       .then(([pub, mine]) => {
-        console.log("Public:", pub);
-        console.log("Private:", mine);
         setPublicRooms(pub);
         setMyRooms(mine.filter((r) => !r.isPublic));
       })
@@ -113,6 +114,7 @@ export default function PostJob() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  // --- Skills tag input ---
   const handleSkillKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" || e.key === ",") {
       e.preventDefault();
@@ -132,6 +134,28 @@ export default function PostJob() {
 
   const removeSkill = (skillToRemove: string) => {
     setSkills(skills.filter((s) => s !== skillToRemove));
+  };
+
+  // --- Requirements tag input (skills jaisa hi pattern) ---
+  const handleRequirementKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" || e.key === ",") {
+      e.preventDefault();
+      const trimmed = requirementInput.trim();
+      if (trimmed && !requirements.includes(trimmed)) {
+        setRequirements([...requirements, trimmed]);
+      }
+      setRequirementInput("");
+    } else if (
+      e.key === "Backspace" &&
+      requirementInput === "" &&
+      requirements.length > 0
+    ) {
+      setRequirements(requirements.slice(0, -1));
+    }
+  };
+
+  const removeRequirement = (reqToRemove: string) => {
+    setRequirements(requirements.filter((r) => r !== reqToRemove));
   };
 
   const handleAutoFill = async () => {
@@ -154,6 +178,7 @@ export default function PostJob() {
         deadline: parsed.deadline,
       });
       setSkills(parsed.skills || []);
+      setRequirements(parsed.requirements || []);
     } catch (err: any) {
       setAiError(
         err.response?.data?.message ||
@@ -169,8 +194,6 @@ export default function PostJob() {
     setError("");
     setDuplicateJobId(null);
 
-    console.log("job data : ", formData);
-
     if (skills.length === 0) {
       setError("Add at least one skill.");
       return;
@@ -181,7 +204,7 @@ export default function PostJob() {
     }
     setLoading(true);
     try {
-      await createJob({ ...formData, skills, room: selectedRoom });
+      await createJob({ ...formData, skills, requirements, room: selectedRoom });
       navigate("/");
     } catch (err: any) {
       if (err.response?.status === 409 && err.response?.data?.existingJobId) {
@@ -370,7 +393,6 @@ export default function PostJob() {
                             key={room._id}
                             type="button"
                             onClick={() => {
-                              console.log("Selected:", room);
                               setSelectedRoom(room._id);
                               setRoomDropdownOpen(false);
                             }}
@@ -424,6 +446,7 @@ export default function PostJob() {
               approved members.
             </p>
           </div>
+
           <div className="grid sm:grid-cols-2 gap-4">
             <div>
               <label className={labelClass}>Job title</label>
@@ -462,6 +485,7 @@ export default function PostJob() {
               </div>
             </div>
           </div>
+
           <div className="grid sm:grid-cols-2 gap-4">
             <div>
               <label className={labelClass}>Location</label>
@@ -503,21 +527,23 @@ export default function PostJob() {
                 />
               </div>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                Application Deadline{" "}
-                <span className="text-slate-400 font-normal">(optional)</span>
-              </label>
-              <input
-                type="date"
-                name="deadline"
-                value={formData.deadline}
-                onChange={handleChange}
-                min={new Date().toISOString().split("T")[0]}
-                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
-              />
-            </div>
           </div>
+
+          <div>
+            <label className={labelClass}>
+              Application Deadline{" "}
+              <span className="text-[#12151C]/35 font-normal">(optional)</span>
+            </label>
+            <input
+              type="date"
+              name="deadline"
+              value={formData.deadline}
+              onChange={handleChange}
+              min={new Date().toISOString().split("T")[0]}
+              className="w-full px-4 py-2.5 bg-[#F6F5F2] border border-[#E4E2DC] rounded-xl text-sm text-[#12151C] focus:outline-none focus:ring-2 focus:ring-[#2F5D50]/40 focus:border-[#2F5D50] transition-shadow"
+            />
+          </div>
+
           <div>
             <label className={labelClass}>Apply link</label>
             <div className="relative">
@@ -536,6 +562,7 @@ export default function PostJob() {
               />
             </div>
           </div>
+
           <div>
             <label className={labelClass}>Skills required</label>
             <div className="flex flex-wrap items-center gap-2 w-full px-3 py-2.5 bg-[#F6F5F2] border border-[#E4E2DC] rounded-xl focus-within:ring-2 focus-within:ring-[#2F5D50]/40 focus-within:border-[#2F5D50] transition-all">
@@ -571,6 +598,50 @@ export default function PostJob() {
               Press Enter or comma to add a skill
             </p>
           </div>
+
+          {/* Requirements — tag input, skills jaisa hi pattern */}
+          <div>
+            <label className={labelClass}>
+              Eligibility / Requirements{" "}
+              <span className="text-[#12151C]/35 font-normal">(optional)</span>
+            </label>
+            <div className="flex flex-wrap items-center gap-2 w-full px-3 py-2.5 bg-[#F6F5F2] border border-[#E4E2DC] rounded-xl focus-within:ring-2 focus-within:ring-[#2F5D50]/40 focus-within:border-[#2F5D50] transition-all">
+              {requirements.map((req) => (
+                <span
+                  key={req}
+                  className="flex items-center gap-1 text-xs font-medium text-[#8A6316] bg-[#FBF3E3] pl-2.5 pr-1.5 py-1 rounded-full"
+                >
+                  {req}
+                  <button
+                    type="button"
+                    onClick={() => removeRequirement(req)}
+                    className="hover:bg-[#F0E3C8] rounded-full p-0.5 transition-colors"
+                  >
+                    <X size={11} />
+                  </button>
+                </span>
+              ))}
+              <div className="flex items-center gap-2 flex-1 min-w-[160px]">
+                <ListChecks size={14} className="text-[#12151C]/25 flex-shrink-0" />
+                <input
+                  type="text"
+                  value={requirementInput}
+                  onChange={(e) => setRequirementInput(e.target.value)}
+                  onKeyDown={handleRequirementKeyDown}
+                  placeholder={
+                    requirements.length === 0
+                      ? "e.g. B.Tech CS, 1+ yr experience"
+                      : "Add more..."
+                  }
+                  className="flex-1 bg-transparent text-sm text-[#12151C] placeholder:text-[#12151C]/30 focus:outline-none py-0.5"
+                />
+              </div>
+            </div>
+            <p className="text-xs text-[#12151C]/35 mt-1.5">
+              Eligibility criteria — separate from skills (e.g. degree, experience level)
+            </p>
+          </div>
+
           <div>
             <label className={labelClass}>Job description</label>
             <textarea
@@ -583,6 +654,7 @@ export default function PostJob() {
               className="w-full px-4 py-3 bg-[#F6F5F2] border border-[#E4E2DC] rounded-xl text-sm text-[#12151C] placeholder:text-[#12151C]/30 focus:outline-none focus:ring-2 focus:ring-[#2F5D50]/40 focus:border-[#2F5D50] transition-shadow resize-none"
             />
           </div>
+
           <motion.button
             whileTap={{ scale: 0.98 }}
             type="submit"

@@ -39,3 +39,15 @@ export interface JobFilters {
   company?: string;
 }
 
+//ai types
+export interface ParsedJobData {
+  title: string;
+  company: string;
+  description: string;
+  location: string;
+  skills: string[];
+  requirements :[];
+  salary: string;
+  applyLink: string;
+  deadline:string;
+}
