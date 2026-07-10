@@ -1,14 +1,18 @@
 import {
   Briefcase,
   Building2,
+  Check,
+  ChevronDown,
+  Globe2,
   IndianRupee,
+  Lock,
   LinkIcon,
   MapPin,
   Send,
   Sparkles,
   X,
 } from "lucide-react";
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { createJob } from "../services/jobService";
@@ -54,15 +58,17 @@ export default function PostJob() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const [rawText,setRawText] = useState("");
-  const [aiLoading,setAiLoading] = useState(false);
-  const [aiError,setAiError] = useState("");
+  const [rawText, setRawText] = useState("");
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiError, setAiError] = useState("");
 
-  const [duplicateJobId,setDuplicateJobId] = useState<string | null>(null);
+  const [duplicateJobId, setDuplicateJobId] = useState<string | null>(null);
 
   const [publicRooms, setPublicRooms] = useState<Room[]>([]);
   const [myRooms, setMyRooms] = useState<Room[]>([]);
   const [selectedRoom, setSelectedRoom] = useState("");
+  const [roomDropdownOpen, setRoomDropdownOpen] = useState(false);
+  const roomDropdownRef = useRef<HTMLDivElement>(null);
 
   const navigate = useNavigate();
 
@@ -74,6 +80,22 @@ export default function PostJob() {
       })
       .catch(console.error);
   }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        roomDropdownRef.current &&
+        !roomDropdownRef.current.contains(e.target as Node)
+      ) {
+        setRoomDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const allRooms = [...publicRooms, ...myRooms];
+  const selectedRoomData = allRooms.find((r) => r._id === selectedRoom);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -98,15 +120,15 @@ export default function PostJob() {
     setSkills(skills.filter((s) => s !== skillToRemove));
   };
 
-  const handleAutoFill = async()=>{
-    if(rawText.trim().length<10){
+  const handleAutoFill = async () => {
+    if (rawText.trim().length < 10) {
       setAiError("Paste job details or a link.");
       return;
     }
 
     setAiError("");
     setAiLoading(true);
-    try{
+    try {
       const parsed = await parseJobInput(rawText);
       setFormData({
         title: parsed.title,
@@ -115,14 +137,14 @@ export default function PostJob() {
         applyLink: parsed.applyLink,
         location: parsed.location,
         salary: parsed.salary,
-      })
+      });
       setSkills(parsed.skills || []);
-    }catch(err:any){
-       setAiError(err.response?.data?.message || "Couldn't parse that. Try filling manually.");
-    }finally{
+    } catch (err: any) {
+      setAiError(err.response?.data?.message || "Couldn't parse that. Try filling manually.");
+    } finally {
       setAiLoading(false);
     }
-  }
+  };
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -133,18 +155,22 @@ export default function PostJob() {
       setError("Add at least one skill.");
       return;
     }
+    if (!selectedRoom) {
+      setError("Select where to post this job.");
+      return;
+    }
     setLoading(true);
-    try{
-      await createJob({...formData,skills, room:selectedRoom});
+    try {
+      await createJob({ ...formData, skills, room: selectedRoom });
       navigate("/");
-    }catch(err:any){
-      if(err.response?.status === 409 && err.response?.data?.existingJobId){
+    } catch (err: any) {
+      if (err.response?.status === 409 && err.response?.data?.existingJobId) {
         setError(`This job is already posted on jobSphere. View it in the dashboard.`);
         setDuplicateJobId(err.response.data.existingJobId);
-      }else{
+      } else {
         setError(err.response?.data?.message || "Failed to post job. Try again.");
       }
-    }finally{
+    } finally {
       setLoading(false);
     }
   };
@@ -243,33 +269,102 @@ export default function PostJob() {
         >
           <div>
             <label className={labelClass}>Post to</label>
-            <select
-              value={selectedRoom}
-              onChange={(e) => setSelectedRoom(e.target.value)}
-              required
-              className="w-full px-4 py-2.5 bg-[#F6F5F2] border border-[#E4E2DC] rounded-xl text-sm text-[#12151C] focus:outline-none focus:ring-2 focus:ring-[#2F5D50]/40 focus:border-[#2F5D50] transition-shadow"
-            >
-              <option value="">Select where to post</option>
+            <div className="relative" ref={roomDropdownRef}>
+              <button
+                type="button"
+                onClick={() => setRoomDropdownOpen((v) => !v)}
+                className={`w-full flex items-center justify-between gap-2 px-4 py-2.5 bg-[#F6F5F2] border rounded-xl text-sm text-left transition-shadow focus:outline-none focus:ring-2 focus:ring-[#2F5D50]/40 ${
+                  roomDropdownOpen ? "border-[#2F5D50] ring-2 ring-[#2F5D50]/40" : "border-[#E4E2DC]"
+                }`}
+              >
+                {selectedRoomData ? (
+                  <span className="flex items-center gap-2 text-[#12151C]">
+                    {selectedRoomData.isPublic ? (
+                      <Globe2 size={14} className="text-[#2F5D50] flex-shrink-0" />
+                    ) : (
+                      <Lock size={13} className="text-[#8A6316] flex-shrink-0" />
+                    )}
+                    {selectedRoomData.name}
+                  </span>
+                ) : (
+                  <span className="text-[#12151C]/35">Select where to post</span>
+                )}
+                <ChevronDown
+                  size={16}
+                  className={`text-[#12151C]/40 flex-shrink-0 transition-transform ${
+                    roomDropdownOpen ? "rotate-180" : ""
+                  }`}
+                />
+              </button>
 
-              {publicRooms.length > 0 && (
-                <optgroup label="🌐 Public Rooms">
-                  {publicRooms.map((room) => (
-                    <option key={room._id} value={room._id}>
-                      {room.name}
-                    </option>
-                  ))}
-                </optgroup>
-              )}
-              {myRooms.length > 0 && (
-                <optgroup label="🔒 My Private Rooms">
-                  {myRooms.map((room) => (
-                    <option key={room._id} value={room._id}>
-                      {room.name}
-                    </option>
-                  ))}
-                </optgroup>
-              )}
-            </select>
+              <AnimatePresence>
+                {roomDropdownOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -6, scale: 0.98 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -6, scale: 0.98 }}
+                    transition={{ duration: 0.15, ease: [0.22, 1, 0.36, 1] }}
+                    className="absolute z-20 mt-2 w-full bg-white border border-[#E4E2DC] rounded-xl shadow-lg shadow-[#12151C]/5 py-1.5 max-h-72 overflow-y-auto"
+                  >
+                    {publicRooms.length === 0 && myRooms.length === 0 && (
+                      <p className="px-4 py-3 text-sm text-[#12151C]/35">
+                        No rooms available yet.
+                      </p>
+                    )}
+
+                    {publicRooms.length > 0 && (
+                      <div className="mb-1">
+                        <p className="flex items-center gap-1.5 px-4 pt-2 pb-1.5 font-mono text-[10px] font-semibold text-[#2F5D50] uppercase tracking-[0.12em]">
+                          <Globe2 size={11} />
+                          Public rooms
+                        </p>
+                        {publicRooms.map((room) => (
+                          <button
+                            key={room._id}
+                            type="button"
+                            onClick={() => {
+                              setSelectedRoom(room._id);
+                              setRoomDropdownOpen(false);
+                            }}
+                            className="w-full flex items-center justify-between gap-2 px-4 py-2 text-sm text-[#12151C] hover:bg-[#EAF1EE] transition-colors"
+                          >
+                            <span>{room.name}</span>
+                            {selectedRoom === room._id && (
+                              <Check size={14} className="text-[#2F5D50] flex-shrink-0" />
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+
+                    {myRooms.length > 0 && (
+                      <div>
+                        <p className="flex items-center gap-1.5 px-4 pt-2 pb-1.5 font-mono text-[10px] font-semibold text-[#8A6316] uppercase tracking-[0.12em] border-t border-[#E4E2DC]/70 mt-1">
+                          <Lock size={10} />
+                          My private rooms
+                        </p>
+                        {myRooms.map((room) => (
+                          <button
+                            key={room._id}
+                            type="button"
+                            onClick={() => {
+                              setSelectedRoom(room._id);
+                              setRoomDropdownOpen(false);
+                            }}
+                            className="w-full flex items-center justify-between gap-2 px-4 py-2 text-sm text-[#12151C] hover:bg-[#FBF3E3] transition-colors"
+                          >
+                            <span>{room.name}</span>
+                            {selectedRoom === room._id && (
+                              <Check size={14} className="text-[#8A6316] flex-shrink-0" />
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
             <p className="text-xs text-[#12151C]/35 mt-1.5">
               Public rooms are visible to everyone. Private rooms only to approved members.
             </p>
@@ -410,6 +505,4 @@ export default function PostJob() {
       </div>
     </div>
   );
-
-
 }
