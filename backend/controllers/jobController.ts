@@ -13,129 +13,146 @@ const normalizeUrl=(url:string):string=>{
     }
 };
 
-export const createJob=async(req:Request,res:Response)=>{
-    try {
-        const {title,company,description,applyLink,location,skills,salary,room,requirements,deadline} = req.body;
+export const createJob = async (req: Request, res: Response) => {
+  try {
+    const { title, company, description, applyLink, location, skills, salary, rooms, requirements, deadline } = req.body;
 
-        console.log(title,company,description,applyLink,location,skills,salary,room,requirements,deadline);
-
-        if(!title || !company || !description || !applyLink || !location || !skills || !room){
-            return res.status(400).json({message:"please fill all required fields, including room"});
-        }
-
-        const roomDoc = await Room.findById(room);
-        if(!roomDoc){
-            return res.status(404).json({ message: "Room not found" });
-        }
-
-        const membership = await RoomMembership.findOne({
-            room,
-            user:req.user?.id,
-        });
-
-        if(!membership &&  roomDoc.isPublic){
-            membership = await RoomMembership.create({
-                room,
-                user : req.user?._id,
-                status:"approved",
-            });
-        }
-
-        if(!membership || membership.status !== "approved"){
-            return res.status(403).json({ message: "You must be an approved member of this room to post here" });
-        }
-
-        const normalizedLink = normalizeUrl(applyLink);
-
-        const existingJobs = await Job.find({company,title});
-        const duplicate = existingJobs.find((job)=>normalizeUrl(job.applyLink)===normalizedLink);
-
-        if(duplicate){
-            return res.status(409).json({
-                message:"This job has already been posted on jobSphere.",
-                existingJobId : duplicate._id,
-            })
-        }
-
-        const job = await Job.create({
-            title,company,description,applyLink,location,
-            skills : skills || [],
-            salary : salary || undefined,
-            postedBy:req.user?._id,
-            room,
-            requirements:requirements || [],
-            deadline : deadline || undefined ,
-        })
-
-        const roomMembers = await RoomMembership.find({
-            room:job.room,
-            status:"approved",
-            user:{$ne: req.user?._id},
-        });
-
-        const notifications = roomMembers.map((member) => ({
-            user: member.user,
-            type: "new_job" as const,
-            title: "New job posted",
-            message: `${job.title} at ${job.company} was just posted`,
-            link: `/jobs/${job._id}`,
-        }));
-
-        if(notifications.length>0){
-            await Notification.insertMany(notifications);
-        }
-
-        res.status(201).json({job});
-    }catch(err:any){
-        res.status(500).json({ message: `Error: ${err.message}` });
+    if (!title || !company || !description || !applyLink || !location || !skills || !rooms || rooms.length === 0) {
+      return res.status(400).json({ message: "Please fill all required fields, including room" });
     }
+
+    const normalizedLink = normalizeUrl(applyLink);
+
+    const created: any[] = [];
+    const duplicates: { roomId: string; existingJobId: string }[] = [];
+    const unauthorized: string[] = [];
+
+    for (const roomId of rooms) {
+      const roomDoc = await Room.findById(roomId);
+      if (!roomDoc) continue;
+
+      let membership = await RoomMembership.findOne({
+        room: roomId,
+        user: req.user?._id,
+      });
+
+      if (!membership && roomDoc.isPublic) {
+        membership = await RoomMembership.create({
+          room: roomId,
+          user: req.user?._id,
+          status: "approved",
+        });
+      }
+
+      if (!membership || membership.status !== "approved") {
+        unauthorized.push(roomId);
+        continue;
+      }
+
+      const existingJobs = await Job.find({ title, company, room: roomId });
+      const duplicate = existingJobs.find((job) => normalizeUrl(job.applyLink) === normalizedLink);
+
+      if (duplicate) {
+        duplicates.push({ roomId, existingJobId: duplicate._id.toString() });
+        continue;
+      }
+
+      const job = await Job.create({
+        title, company, description, applyLink, location,
+        skills: skills || [],
+        salary,
+        postedBy: req.user?._id,
+        room: roomId,
+        requirements: requirements || [],
+        deadline: deadline || undefined,
+      });
+
+      created.push(job);
+
+      const roomMembers = await RoomMembership.find({
+        room: roomId,
+        status: "approved",
+        user: { $ne: req.user?._id },
+      });
+
+      const notifications = roomMembers.map((member) => ({
+        user: member.user,
+        type: "new_job" as const,
+        title: "New job posted",
+        message: `${job.title} at ${job.company} was just posted`,
+        link: `/jobs/${job._id}`,
+      }));
+
+      if (notifications.length > 0) {
+        await Notification.insertMany(notifications);
+      }
+    }
+
+    res.status(201).json({ created, duplicates, unauthorized });
+  } catch (err: any) {
+    res.status(500).json({ message: `Error: ${err.message}` });
+  }
 };
 
-export const getJobs = async(req:Request,res:Response)=>{
-    try {
-        const {search, location, page = "1", limit = "9"} = req.query;
- 
-        const pageNum = Math.max(parseInt(page as string) || 1, 1);
-        const limitNum = Math.max(parseInt(limit as string) || 9, 1);
-        const skip = (pageNum - 1) * limitNum;
- 
-        const publicRooms = await RoomMembership.find({isPublic:true}).select("_id");
-        const myApprovedMemberships = await RoomMembership.find({
-            user : req.user?._id,
-            status : "approved",
-        }).select("room");
- 
-        const accessibleRoomIds = [
-            ...publicRooms.map((r)=>r._id),
-            ...myApprovedMemberships.map((m)=>m.room)
-        ];
- 
-        const filter:any={room : { $in: accessibleRoomIds}};
- 
-        if(location) filter.location = location;
- 
-        if (search){
-            const regex = new RegExp(search as string, "i");
-            filter.$or = [
-                { title: regex },
-                { company: regex },
-                { skills: regex },
-            ];
-        }
- 
-        const [jobs, total] = await Promise.all([
-            Job.find(filter).sort({createdAt:-1}).skip(skip).limit(limitNum),
-            Job.countDocuments(filter),
-        ]);
- 
-        const hasMore = skip + jobs.length < total;
- 
-        res.status(200).json({ jobs, hasMore, total, page: pageNum });
- 
-    }catch(err:any){
-        res.status(500).json({ message: `Error: ${err.message}` });
+export const getJobs = async (req: Request, res: Response) => {
+  try {
+    const { search, location } = req.query;
+
+    const publicRooms = await Room.find({ isPublic: true }).select("_id");
+    const myApprovedMemberships = await RoomMembership.find({
+      user: req.user?._id,
+      status: "approved",
+    }).select("room");
+
+    const accessibleRoomIds = [
+      ...publicRooms.map((r) => r._id),
+      ...myApprovedMemberships.map((m) => m.room),
+    ];
+
+    const filter: any = { room: { $in: accessibleRoomIds } };
+    if (location) filter.location = location;
+    if (search) {
+      const regex = new RegExp(search as string, "i");
+      filter.$or = [{ title: regex }, { company: regex }, { skills: regex }];
     }
-}
+
+    const jobs = await Job.find(filter)
+      .populate("room", "name")
+      .sort({ createdAt: -1 });
+
+    const groups = new Map<string, { canonical: any; roomNames: string[]; latestDate: Date }>();
+
+    for (const job of jobs) {
+      const key = `${job.title.toLowerCase()}|${job.company.toLowerCase()}|${normalizeUrl(job.applyLink)}`;
+
+      if (!groups.has(key)) {
+        groups.set(key, {
+          canonical: job,
+          roomNames: [(job.room as any).name],
+          latestDate: job.createdAt as any,
+        });
+      } else {
+        const group = groups.get(key)!;
+        group.roomNames.push((job.room as any).name);
+        if (job.createdAt > group.latestDate) {
+          group.canonical = job;
+          group.latestDate = job.createdAt as any;
+        }
+      }
+    }
+
+    const dedupedJobs = Array.from(groups.values())
+      .map((g) => ({
+        ...g.canonical.toObject(),
+        postedInRooms: g.roomNames,
+      }))
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+    res.status(200).json({ jobs: dedupedJobs });
+  } catch (err: any) {
+    res.status(500).json({ message: `Error: ${err.message}` });
+  }
+};
 
 export const getJobLocations = async (req: Request, res: Response) => {
     try {

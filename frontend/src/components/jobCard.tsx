@@ -1,16 +1,25 @@
 import { useNavigate } from "react-router-dom";
-import { MapPin, Building2, IndianRupee, Trash2, Clock, BookmarkCheck, Bookmark } from "lucide-react";
+import {
+  MapPin,
+  Building2,
+  IndianRupee,
+  Trash2,
+  Clock,
+  BookmarkCheck,
+  Bookmark,
+} from "lucide-react";
 import { motion } from "framer-motion";
 import type { Job } from "../types/types.ts";
 import useApplications from "../context/useApplication";
 import { useBookmarks } from "../context/useBookmark.ts";
+import { Users2 } from "lucide-react";
 
 interface JobCardProps {
   job: Job;
   onDelete?: (jobId: string) => void;
 }
 
-export default function JobCard({ job, onDelete }: JobCardProps){
+export default function JobCard({ job, onDelete }: JobCardProps) {
   const navigate = useNavigate();
   const { isApplied } = useApplications();
   const applied = isApplied(job._id);
@@ -19,7 +28,7 @@ export default function JobCard({ job, onDelete }: JobCardProps){
   const bookmarked = isBookmarked(job._id);
 
   const handleBookmarkClick = (e: React.MouseEvent) => {
-    e.stopPropagation(); 
+    e.stopPropagation();
     toggleBookmark(job._id);
   };
 
@@ -32,7 +41,7 @@ export default function JobCard({ job, onDelete }: JobCardProps){
   };
 
   const handleDeleteClick = (e: React.MouseEvent) => {
-    e.stopPropagation(); 
+    e.stopPropagation();
     onDelete?.(job._id);
   };
 
@@ -71,7 +80,9 @@ export default function JobCard({ job, onDelete }: JobCardProps){
           <button
             onClick={handleBookmarkClick}
             className={`p-1.5 rounded-lg transition-colors ${
-              bookmarked ? "text-amber-500" : "text-slate-400 hover:text-amber-500 hover:bg-amber-50"
+              bookmarked
+                ? "text-amber-500"
+                : "text-slate-400 hover:text-amber-500 hover:bg-amber-50"
             }`}
             aria-label="Bookmark"
           >
@@ -93,7 +104,9 @@ export default function JobCard({ job, onDelete }: JobCardProps){
       <h3 className="font-display font-semibold text-[#12151C] text-lg mb-1 group-hover:text-[#2F5D50] transition-colors pr-6">
         {job.title}
       </h3>
-      <p className="text-sm font-medium text-[#12151C]/60 mb-3">{job.company}</p>
+      <p className="text-sm font-medium text-[#12151C]/60 mb-3">
+        {job.company}
+      </p>
 
       <p className="text-sm text-[#12151C]/50 line-clamp-2 mb-4">
         {job.description}
@@ -117,7 +130,9 @@ export default function JobCard({ job, onDelete }: JobCardProps){
           }`}
         >
           <Clock size={12} />
-          {daysLeft === 0 ? "Closes today!" : `${daysLeft} day${daysLeft > 1 ? "s" : ""} left to apply`}
+          {daysLeft === 0
+            ? "Closes today!"
+            : `${daysLeft} day${daysLeft > 1 ? "s" : ""} left to apply`}
         </div>
       )}
 
@@ -132,7 +147,13 @@ export default function JobCard({ job, onDelete }: JobCardProps){
             {job.salary.replace("₹", "")}
           </div>
         )}
+        {job.postedInRooms && job.postedInRooms.length > 1 && (
+          <div className="flex items-center gap-1 text-xs text-slate-400 mb-3">
+            <Users2 size={12} />
+            Posted in {job.postedInRooms.length} rooms
+          </div>
+        )}
       </div>
     </motion.div>
   );
-};
+}

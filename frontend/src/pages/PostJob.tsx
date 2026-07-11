@@ -77,7 +77,7 @@ export default function PostJob() {
 
   const [publicRooms, setPublicRooms] = useState<Room[]>([]);
   const [myRooms, setMyRooms] = useState<Room[]>([]);
-  const [selectedRoom, setSelectedRoom] = useState("");
+  const [selectedRoom, setSelectedRoom] = useState<string[]>([]);
   const [roomDropdownOpen, setRoomDropdownOpen] = useState(false);
   const roomDropdownRef = useRef<HTMLDivElement>(null);
 
@@ -106,7 +106,6 @@ export default function PostJob() {
   }, []);
 
   const allRooms = [...publicRooms, ...myRooms];
-  const selectedRoomData = allRooms.find((r) => r._id === selectedRoom);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -114,7 +113,6 @@ export default function PostJob() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // --- Skills tag input ---
   const handleSkillKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" || e.key === ",") {
       e.preventDefault();
@@ -136,8 +134,9 @@ export default function PostJob() {
     setSkills(skills.filter((s) => s !== skillToRemove));
   };
 
-  // --- Requirements tag input (skills jaisa hi pattern) ---
-  const handleRequirementKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleRequirementKeyDown = (
+    e: React.KeyboardEvent<HTMLInputElement>,
+  ) => {
     if (e.key === "Enter" || e.key === ",") {
       e.preventDefault();
       const trimmed = requirementInput.trim();
@@ -189,6 +188,14 @@ export default function PostJob() {
     }
   };
 
+  const toggleRoomSelection = (roomId: string) => {
+    setSelectedRoom((prev: any) =>
+      prev.includes(roomId)
+        ? prev.filter((id: any) => id !== roomId)
+        : [...prev, roomId],
+    );
+  };
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError("");
@@ -198,25 +205,31 @@ export default function PostJob() {
       setError("Add at least one skill.");
       return;
     }
-    if (!selectedRoom) {
+    if (selectedRoom.length === 0) {
       setError("Select where to post this job.");
       return;
     }
     setLoading(true);
     try {
-      await createJob({ ...formData, skills, requirements, room: selectedRoom });
-      navigate("/");
-    } catch (err: any) {
-      if (err.response?.status === 409 && err.response?.data?.existingJobId) {
+      const result = await createJob({
+        ...formData,
+        skills,
+        requirements,
+        rooms: selectedRoom,
+      });
+      if (result.created.length > 0 && result.duplicates.length === 0) {
+        navigate("/");
+      } else if (result.created.length > 0 && result.duplicates.length > 0) {
         setError(
-          `This job is already posted on jobSphere. View it in the dashboard.`,
+          `Posted to ${result.created.length} room(s). Already existed in ${result.duplicates.length} room(s).`,
         );
-        setDuplicateJobId(err.response.data.existingJobId);
+        setTimeout(() => navigate("/"), 2500);
       } else {
-        setError(
-          err.response?.data?.message || "Failed to post job. Try again.",
-        );
+        setError("This job already exists in all selected rooms.");
+        setDuplicateJobId(result.duplicates[0]?.existingJobId || null);
       }
+    } catch (err: any) {
+      setError(err.response?.data?.message || "Failed to post job. Try again.");
     } finally {
       setLoading(false);
     }
@@ -339,20 +352,10 @@ export default function PostJob() {
                     : "border-[#E4E2DC]"
                 }`}
               >
-                {selectedRoomData ? (
-                  <span className="flex items-center gap-2 text-[#12151C]">
-                    {selectedRoomData.isPublic ? (
-                      <Globe2
-                        size={14}
-                        className="text-[#2F5D50] flex-shrink-0"
-                      />
-                    ) : (
-                      <Lock
-                        size={13}
-                        className="text-[#8A6316] flex-shrink-0"
-                      />
-                    )}
-                    {selectedRoomData.name}
+                {selectedRoom.length > 0 ? (
+                  <span className="text-[#12151C]">
+                    {selectedRoom.length} room
+                    {selectedRoom.length > 1 ? "s" : ""} selected
                   </span>
                 ) : (
                   <span className="text-[#12151C]/35">
@@ -361,9 +364,7 @@ export default function PostJob() {
                 )}
                 <ChevronDown
                   size={16}
-                  className={`text-[#12151C]/40 flex-shrink-0 transition-transform ${
-                    roomDropdownOpen ? "rotate-180" : ""
-                  }`}
+                  className={`text-[#12151C]/40 shrink-0 transition-transform ${roomDropdownOpen ? "rotate-180" : ""}`}
                 />
               </button>
 
@@ -385,27 +386,21 @@ export default function PostJob() {
                     {publicRooms.length > 0 && (
                       <div className="mb-1">
                         <p className="flex items-center gap-1.5 px-4 pt-2 pb-1.5 font-mono text-[10px] font-semibold text-[#2F5D50] uppercase tracking-[0.12em]">
-                          <Globe2 size={11} />
-                          Public rooms
+                          <Globe2 size={11} /> Public rooms
                         </p>
                         {publicRooms.map((room) => (
-                          <button
+                          <label
                             key={room._id}
-                            type="button"
-                            onClick={() => {
-                              setSelectedRoom(room._id);
-                              setRoomDropdownOpen(false);
-                            }}
-                            className="w-full flex items-center justify-between gap-2 px-4 py-2 text-sm text-[#12151C] hover:bg-[#EAF1EE] transition-colors"
+                            className="flex items-center gap-2.5 px-4 py-2 text-sm text-[#12151C] hover:bg-[#EAF1EE] transition-colors cursor-pointer"
                           >
-                            <span>{room.name}</span>
-                            {selectedRoom === room._id && (
-                              <Check
-                                size={14}
-                                className="text-[#2F5D50] flex-shrink-0"
-                              />
-                            )}
-                          </button>
+                            <input
+                              type="checkbox"
+                              checked={selectedRoom.includes(room._id)}
+                              onChange={() => toggleRoomSelection(room._id)}
+                              className="w-4 h-4 rounded accent-[#2F5D50]"
+                            />
+                            {room.name}
+                          </label>
                         ))}
                       </div>
                     )}
@@ -413,27 +408,21 @@ export default function PostJob() {
                     {myRooms.length > 0 && (
                       <div>
                         <p className="flex items-center gap-1.5 px-4 pt-2 pb-1.5 font-mono text-[10px] font-semibold text-[#8A6316] uppercase tracking-[0.12em] border-t border-[#E4E2DC]/70 mt-1">
-                          <Lock size={10} />
-                          My private rooms
+                          <Lock size={10} /> My private rooms
                         </p>
                         {myRooms.map((room) => (
-                          <button
+                          <label
                             key={room._id}
-                            type="button"
-                            onClick={() => {
-                              setSelectedRoom(room._id);
-                              setRoomDropdownOpen(false);
-                            }}
-                            className="w-full flex items-center justify-between gap-2 px-4 py-2 text-sm text-[#12151C] hover:bg-[#FBF3E3] transition-colors"
+                            className="flex items-center gap-2.5 px-4 py-2 text-sm text-[#12151C] hover:bg-[#FBF3E3] transition-colors cursor-pointer"
                           >
-                            <span>{room.name}</span>
-                            {selectedRoom === room._id && (
-                              <Check
-                                size={14}
-                                className="text-[#8A6316] flex-shrink-0"
-                              />
-                            )}
-                          </button>
+                            <input
+                              type="checkbox"
+                              checked={selectedRoom.includes(room._id)}
+                              onChange={() => toggleRoomSelection(room._id)}
+                              className="w-4 h-4 rounded accent-[#8A6316]"
+                            />
+                            {room.name}
+                          </label>
                         ))}
                       </div>
                     )}
@@ -441,9 +430,33 @@ export default function PostJob() {
                 )}
               </AnimatePresence>
             </div>
+
+            {selectedRoom.length > 0 && (
+              <div className="flex flex-wrap gap-1.5 mt-2">
+                {selectedRoom.map((roomId) => {
+                  const room = allRooms.find((r) => r._id === roomId);
+                  if (!room) return null;
+                  return (
+                    <span
+                      key={roomId}
+                      className="flex items-center gap-1 text-xs font-medium text-[#12151C] bg-[#F6F5F2] border border-[#E4E2DC] pl-2.5 pr-1.5 py-1 rounded-full"
+                    >
+                      {room.name}
+                      <button
+                        type="button"
+                        onClick={() => toggleRoomSelection(roomId)}
+                        className="hover:bg-[#E4E2DC] rounded-full p-0.5 transition-colors"
+                      >
+                        <X size={11} />
+                      </button>
+                    </span>
+                  );
+                })}
+              </div>
+            )}
+
             <p className="text-xs text-[#12151C]/35 mt-1.5">
-              Public rooms are visible to everyone. Private rooms only to
-              approved members.
+              Select multiple rooms to post to all of them at once.
             </p>
           </div>
 
@@ -622,7 +635,10 @@ export default function PostJob() {
                 </span>
               ))}
               <div className="flex items-center gap-2 flex-1 min-w-[160px]">
-                <ListChecks size={14} className="text-[#12151C]/25 flex-shrink-0" />
+                <ListChecks
+                  size={14}
+                  className="text-[#12151C]/25 flex-shrink-0"
+                />
                 <input
                   type="text"
                   value={requirementInput}
@@ -638,7 +654,8 @@ export default function PostJob() {
               </div>
             </div>
             <p className="text-xs text-[#12151C]/35 mt-1.5">
-              Eligibility criteria — separate from skills (e.g. degree, experience level)
+              Eligibility criteria — separate from skills (e.g. degree,
+              experience level)
             </p>
           </div>
 

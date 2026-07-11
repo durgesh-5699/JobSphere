@@ -1,5 +1,5 @@
 import axios from "axios";
-import type { Job } from "../types/types.ts";
+import type { CreateJobResult, Job } from "../types/types.ts";
 
 export const fetchJobs = async (params: {search?: string;location?: string;page?: number;limit?: number;})=>{
   const res = await axios.get("/api/jobs", { params });
@@ -21,9 +21,10 @@ export const fetchMyJobs = async():Promise<Job[]>=>{
     return res.data.jobs;
 }
 
-export const createJob = async(jobData: Omit<Job, "_id" | "postedBy" | "createdAt"> & { room: string ; requirements?:string[]}):Promise<Job>=>{
+export const createJob = async(jobData: Omit<Job, "_id" | "postedBy" | "createdAt" | "room"> & { rooms: string[] ; requirements?:string[]}):Promise<CreateJobResult>=>{
     const res = await axios.post("/api/jobs",jobData);
-    return res.data.job ;
+    console.log("response -> ",res);
+    return res.data ;
 }
 
 export const deleteJob = async(id:string):Promise<void>=>{

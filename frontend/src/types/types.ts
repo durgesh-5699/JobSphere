@@ -32,12 +32,19 @@ export interface Job {
   postedBy: string;
   createdAt: string;
   deadline?:string;
+  postedInRooms?: string[];
 }
 
 export interface JobFilters {
   location?: string;
   skill?: string;
   company?: string;
+}
+
+export interface CreateJobResult{
+  created : Job[];
+  duplicates : {roomId:string; existingJobId:string}[];
+  unauthorized:string[];
 }
 
 //ai types

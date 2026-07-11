@@ -12,6 +12,8 @@ export interface IJob extends Document{
   room: mongoose.Types.ObjectId;
   requirements : string[];
   deadline? : Date;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 const jobSchema = new mongoose.Schema<IJob>({
