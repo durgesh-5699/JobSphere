@@ -1,7 +1,7 @@
 import axios from "axios";
-import type { CreateJobResult, Job } from "../types/types.ts";
+import type { CreateJobResult, FetchJobsResponse, Job } from "../types/types.ts";
 
-export const fetchJobs = async (params: {search?: string;location?: string;page?: number;limit?: number;})=>{
+export const fetchJobs = async (params: {search?: string; location?: string; page?: number; limit?: number;}): Promise<FetchJobsResponse> => {
   const res = await axios.get("/api/jobs", { params });
   return res.data;
 };

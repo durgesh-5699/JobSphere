@@ -54,6 +54,13 @@ export interface CreateJobResult{
   unauthorized:string[];
 }
 
+export interface FetchJobsResponse {
+  jobs: Job[];
+  total: number;
+  hasMore: boolean;
+  page: number;
+}
+
 //ai types
 export interface ParsedJobData {
   title: string;

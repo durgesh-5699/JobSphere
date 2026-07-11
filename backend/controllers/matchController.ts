@@ -2,6 +2,7 @@ import type { Request, Response } from "express";
 import OpenAI from "openai";
 import Job from "../models/jobModel.ts";
 import Profile from "../models/profileModel.ts";
+import JobMatch from "../models/jobMatchModel.ts";
 import { getDedupedAccessibleJobs } from "../utils/jobHelper.ts";
 
 const groq = new OpenAI({
@@ -29,15 +30,46 @@ Respond ONLY with valid JSON, no preamble, no markdown fences, no extra text.
 JSON shape must be exactly:
 {
   "recommendations": [
-    { "jobId": string, "matchPercent": number, "reason": string }
+    { "jobId": string, "matchPercent": number, "matchedPoints": string[], "missingPoints": string[] }
   ]
 }
 Rules:
-- Return the top 6 best-matching jobs only, sorted by matchPercent descending.
-- Each jobId must appear AT MOST ONCE in the recommendations array — never repeat the same jobId under any circumstance.
-- "reason" is a short one-sentence explanation (under 15 words) of why it's a good fit.
+- Return ALL jobs from the provided list, sorted by matchPercent descending.
+- Each jobId must appear AT MOST ONCE — never repeat the same jobId.
+- "matchedPoints" and "missingPoints" are short arrays (2-4 items each, under 15 words per item) explaining the fit — same level of detail as a single-job match analysis.
 - Be honest — if the profile is thin/empty, scores should be low across the board.
 - Only include jobId values that exist in the provided job list.`;
+
+const computeMatchForJob = async (job: any, profile: any) => {
+  const jobSummary = `
+    Job Title: ${job.title}
+    Company: ${job.company}
+    Requirements: ${job.requirements?.join(", ") || "Not specified"}
+    Skills required: ${job.skills.join(", ")}
+    Description: ${job.description}
+  `.trim();
+
+  const profileSummary = `
+    Bio: ${profile?.bio || "Not provided"}
+    Skills: ${profile?.skills?.join(", ") || "None listed"}
+    Education: ${profile?.education?.map((e: any) => `${e.degree} from ${e.institution} (${e.year})`).join("; ") || "None listed"}
+    Experience: ${profile?.experience?.map((e: any) => `${e.role} at ${e.company} (${e.duration}): ${e.description}`).join("; ") || "None listed"}
+    Projects: ${profile?.projects?.map((p: any) => `${p.title} (${p.techStack.join(", ")}): ${p.description}`).join("; ") || "None listed"}
+  `.trim();
+
+  const completion = await groq.chat.completions.create({
+    model: "llama-3.3-70b-versatile",
+    messages: [
+      { role: "system", content: buildMatchPrompt() },
+      { role: "user", content: `JOB POSTING:\n${jobSummary}\n\nCANDIDATE PROFILE:\n${profileSummary}` },
+    ],
+    temperature: 0,
+  });
+
+  const rawJson = completion.choices[0]?.message?.content || "{}";
+  const cleaned = rawJson.replace(/```json|```/g, "").trim();
+  return JSON.parse(cleaned);
+};
 
 export const getJobMatch = async (req: Request, res: Response) => {
   try {
@@ -45,36 +77,34 @@ export const getJobMatch = async (req: Request, res: Response) => {
     if (!job) {
       return res.status(404).json({ message: "Job not found" });
     }
+
     const profile = await Profile.findOne({ user: req.user?._id });
 
-    const jobSummary = `
-            Job Title: ${job.title}
-            Company: ${job.company}
-            Requirements: ${job.requirements?.join(", ") || "Not specified"}
-            Skills required: ${job.skills.join(", ")}
-            Description: ${job.description}
-            `.trim();
+    const cached = await JobMatch.findOne({ user: req.user?._id, job: job._id });
 
-    const profileSummary = `
-            Bio: ${profile?.bio || "Not provided"}
-            Skills: ${profile?.skills?.join(", ") || "None listed"}
-            Education: ${profile?.education?.map((e) => `${e.degree} from ${e.institution} (${e.year})`).join("; ") || "None listed"}
-            Experience: ${profile?.experience?.map((e) => `${e.role} at ${e.company} (${e.duration}): ${e.description}`).join("; ") || "None listed"}
-            Projects: ${profile?.projects?.map((p) => `${p.title} (${p.techStack.join(", ")}): ${p.description}`).join("; ") || "None listed"}
-            `.trim();
+    const profileUpdatedAt = profile?.get("updatedAt") as Date | undefined;
+    const cacheIsFresh = cached && (!profileUpdatedAt || cached.computedAt >= profileUpdatedAt);
 
-    const completion = await groq.chat.completions.create({
-      model: "llama-3.3-70b-versatile",
-      messages: [
-        { role: "system", content: buildMatchPrompt() },
-        { role: "user", content: `JOB POSTING:\n${jobSummary}\n\nCANDIDATE PROFILE:\n${profileSummary}` },
-      ],
-      temperature: 0.3,
-    });
+    if (cacheIsFresh) {
+      return res.status(200).json({
+        matchPercent: cached.matchPercent,
+        matchedPoints: cached.matchedPoints,
+        missingPoints: cached.missingPoints,
+      });
+    }
 
-    const rawJson = completion.choices[0]?.message?.content || "{}";
-    const cleaned = rawJson.replace(/```json|```/g, "").trim();
-    const result = JSON.parse(cleaned);
+    const result = await computeMatchForJob(job, profile);
+
+    await JobMatch.findOneAndUpdate(
+      { user: req.user?._id, job: job._id },
+      {
+        matchPercent: result.matchPercent,
+        matchedPoints: result.matchedPoints || [],
+        missingPoints: result.missingPoints || [],
+        computedAt: new Date(),
+      },
+      { upsert: true }
+    );
 
     res.status(200).json(result);
   } catch (err: any) {
@@ -85,9 +115,8 @@ export const getJobMatch = async (req: Request, res: Response) => {
 export const getRecommendedJobs = async (req: Request, res: Response) => {
   try {
     const profile = await Profile.findOne({ user: req.user?._id });
-
     const allJobs = await getDedupedAccessibleJobs(req.user?._id as string);
-    const jobs = allJobs.slice(0, 15); 
+    const jobs = allJobs.slice(0, 25);
 
     if (jobs.length === 0) {
       return res.status(200).json({ recommendations: [] });
@@ -100,49 +129,94 @@ export const getRecommendedJobs = async (req: Request, res: Response) => {
       return res.status(200).json({ recommendations: [], profileIncomplete: true });
     }
 
-    const jobsSummary = jobs
-      .map(
-        (j: any) =>
-          `{id: "${j._id}", title: "${j.title}", company: "${j.company}", skills: [${j.skills.join(", ")}], requirements: [${(j.requirements || []).join(", ")}]}`
-      )
-      .join("\n");
+    const profileUpdatedAt = profile?.get("updatedAt") as Date | undefined;
 
-    const profileSummary = `
-        Skills: ${profile?.skills?.join(", ") || "None"}
-        Education: ${profile?.education?.map((e) => e.degree).join(", ") || "None"}
-        Experience: ${profile?.experience?.map((e) => `${e.role} at ${e.company}`).join(", ") || "None"}
-        Projects: ${profile?.projects?.map((p) => `${p.title} (${p.techStack.join(", ")})`).join(", ") || "None"}
-        `.trim();
+    const jobIds = jobs.map((j: any) => j._id);
+    const existingMatches = await JobMatch.find({ user: req.user?._id, job: { $in: jobIds } });
+    const matchMap = new Map(existingMatches.map((m) => [m.job.toString(), m]));
 
-    const completion = await groq.chat.completions.create({
-      model: "llama-3.3-70b-versatile",
-      messages: [
-        { role: "system", content: buildRecommendationPrompt() },
-        { role: "user", content: `CANDIDATE PROFILE:\n${profileSummary}\n\nAVAILABLE JOBS:\n${jobsSummary}` },
-      ],
-      temperature: 0.3,
-    });
+    const freshResults: any[] = [];
+    const jobsNeedingCompute: any[] = [];
 
-    const rawJson = completion.choices[0]?.message?.content || "{}";
-    const cleaned = rawJson.replace(/```json|```/g, "").trim();
-    const result = JSON.parse(cleaned);
+    for (const job of jobs) {
+      const cached = matchMap.get((job as any)._id.toString());
+      const isFresh = cached && (!profileUpdatedAt || cached.computedAt >= profileUpdatedAt);
 
-    const jobMap = new Map(jobs.map((j: any) => [j._id.toString(), j]));
-    const seenJobIds = new Set<string>();
+      if (isFresh) {
+        freshResults.push({
+          jobId: (job as any)._id.toString(),
+          matchPercent: cached!.matchPercent,
+          matchedPoints: cached!.matchedPoints,
+          missingPoints: cached!.missingPoints,
+          job,
+        });
+      } else {
+        jobsNeedingCompute.push(job);
+      }
+    }
 
-    const enrichedRecommendations = (result.recommendations || [])
-      .filter((r: any) => {
-        if (!jobMap.has(r.jobId)) return false;
-        if (seenJobIds.has(r.jobId)) return false; 
+    if (jobsNeedingCompute.length > 0) {
+      const jobsSummary = jobsNeedingCompute
+        .map(
+          (j: any) =>
+            `{id: "${j._id}", title: "${j.title}", company: "${j.company}", skills: [${j.skills.join(", ")}], requirements: [${(j.requirements || []).join(", ")}]}`
+        )
+        .join("\n");
+
+      const profileSummary = `
+      Bio: ${profile?.bio || "Not provided"}
+      Skills: ${profile?.skills?.join(", ") || "None"}
+      Education: ${profile?.education?.map((e) => e.degree).join(", ") || "None"}
+      Experience: ${profile?.experience?.map((e) => `${e.role} at ${e.company}`).join(", ") || "None"}
+      Projects: ${profile?.projects?.map((p) => `${p.title} (${p.techStack.join(", ")})`).join(", ") || "None"}
+      `.trim();
+
+      const completion = await groq.chat.completions.create({
+        model: "llama-3.3-70b-versatile",
+        messages: [
+          { role: "system", content: buildRecommendationPrompt() },
+          { role: "user", content: `CANDIDATE PROFILE:\n${profileSummary}\n\nAVAILABLE JOBS:\n${jobsSummary}` },
+        ],
+        temperature: 0,
+      });
+
+      const rawJson = completion.choices[0]?.message?.content || "{}";
+      const cleaned = rawJson.replace(/```json|```/g, "").trim();
+      const result = JSON.parse(cleaned);
+
+      const jobMap = new Map(jobsNeedingCompute.map((j: any) => [j._id.toString(), j]));
+      const seenJobIds = new Set<string>();
+
+      for (const r of result.recommendations || []) {
+        if (!jobMap.has(r.jobId) || seenJobIds.has(r.jobId)) continue;
         seenJobIds.add(r.jobId);
-        return true;
-      })
-      .map((r: any) => ({
-        ...r,
-        job: jobMap.get(r.jobId),
+
+        await JobMatch.findOneAndUpdate(
+          { user: req.user?._id, job: r.jobId },
+          {
+            matchPercent: r.matchPercent,
+            matchedPoints: r.matchedPoints || [],
+            missingPoints: r.missingPoints || [],
+            computedAt: new Date(),
+          },
+          { upsert: true }
+        );
+
+        freshResults.push({ ...r, job: jobMap.get(r.jobId) });
+      }
+    }
+
+    const sorted = freshResults
+      .sort((a, b) => b.matchPercent - a.matchPercent)
+      .slice(0, 6)
+      .map((r) => ({
+        jobId: r.jobId,
+        matchPercent: r.matchPercent,
+        reason: r.matchedPoints?.[0] || "Good overall fit",
+        job: r.job,
       }));
 
-    res.status(200).json({ recommendations: enrichedRecommendations });
+    res.status(200).json({ recommendations: sorted });
   } catch (err: any) {
     res.status(500).json({ message: `Error: ${err.message}` });
   }

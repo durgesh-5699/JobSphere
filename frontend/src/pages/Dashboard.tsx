@@ -124,7 +124,7 @@ export default function Dashboard() {
         >
           <div className="inline-flex items-center gap-2 bg-[#FBF3E3] border border-[#EADFC4] rounded-full px-4 py-1.5 mb-4">
             <GraduationCap size={13} className="text-[#C08B2C]" />
-            <span className="font-mono text-[11px] font-semibold text-[#8A6316] tracking-[0.1em]">
+            <span className="font-mono text-[11px] font-semibold text-[#8A6316] tracking-widest">
               {total} OPEN ROLES
             </span>
           </div>

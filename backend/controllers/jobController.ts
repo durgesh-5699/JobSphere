@@ -97,18 +97,31 @@ export const createJob = async (req: Request, res: Response) => {
 
 export const getJobs = async (req: Request, res: Response) => {
   try {
-    const { search, location } = req.query;
+    const { search, location, page = "1", limit = "9" } = req.query;
 
-     const extraFilter: any = {};
+    const pageNum = parseInt(page as string, 10) || 1;
+    const limitNum = parseInt(limit as string, 10) || 9;
+
+    const extraFilter: any = {};
     if (location) extraFilter.location = location;
     if (search) {
       const regex = new RegExp(search as string, "i");
       extraFilter.$or = [{ title: regex }, { company: regex }, { skills: regex }];
     }
 
-    const dedupedJobs = await getDedupedAccessibleJobs(req.user?._id as string, extraFilter);
+    const allDedupedJobs = await getDedupedAccessibleJobs(req.user?._id as string, extraFilter);
 
-    res.status(200).json({ jobs: dedupedJobs });
+    const total = allDedupedJobs.length;
+    const startIndex = (pageNum - 1) * limitNum;
+    const paginatedJobs = allDedupedJobs.slice(startIndex, startIndex + limitNum);
+    const hasMore = startIndex + limitNum < total;
+
+    res.status(200).json({
+      jobs: paginatedJobs,
+      total,
+      hasMore,
+      page: pageNum,
+    });
   } catch (err: any) {
     res.status(500).json({ message: `Error: ${err.message}` });
   }

@@ -97,7 +97,6 @@ export const updateMyProfile=async(req:Request,res:Response)=>{
     }
 }
 
-
 export const uploadResume = async(req:Request,res:Response)=> {
     try{
         if(!req.file){
