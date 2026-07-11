@@ -5,6 +5,13 @@ export interface MatchResult {
   missingPoints: string[];
 }
 
+export interface Recommendation {
+  jobId: string;
+  matchPercent: number;
+  reason: string;
+  job: Job;
+}
+
 
 //notification types
 export interface Notification {

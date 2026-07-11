@@ -3,6 +3,7 @@ import Job from "../models/jobModel";
 import RoomMembership from "../models/roomMembershipModel";
 import Room from "../models/roomModel"
 import Notification from "../models/notificationModel";
+import { getDedupedAccessibleJobs } from "../utils/jobHelper";
 
 const normalizeUrl=(url:string):string=>{
     try{
@@ -98,55 +99,14 @@ export const getJobs = async (req: Request, res: Response) => {
   try {
     const { search, location } = req.query;
 
-    const publicRooms = await Room.find({ isPublic: true }).select("_id");
-    const myApprovedMemberships = await RoomMembership.find({
-      user: req.user?._id,
-      status: "approved",
-    }).select("room");
-
-    const accessibleRoomIds = [
-      ...publicRooms.map((r) => r._id),
-      ...myApprovedMemberships.map((m) => m.room),
-    ];
-
-    const filter: any = { room: { $in: accessibleRoomIds } };
-    if (location) filter.location = location;
+     const extraFilter: any = {};
+    if (location) extraFilter.location = location;
     if (search) {
       const regex = new RegExp(search as string, "i");
-      filter.$or = [{ title: regex }, { company: regex }, { skills: regex }];
+      extraFilter.$or = [{ title: regex }, { company: regex }, { skills: regex }];
     }
 
-    const jobs = await Job.find(filter)
-      .populate("room", "name")
-      .sort({ createdAt: -1 });
-
-    const groups = new Map<string, { canonical: any; roomNames: string[]; latestDate: Date }>();
-
-    for (const job of jobs) {
-      const key = `${job.title.toLowerCase()}|${job.company.toLowerCase()}|${normalizeUrl(job.applyLink)}`;
-
-      if (!groups.has(key)) {
-        groups.set(key, {
-          canonical: job,
-          roomNames: [(job.room as any).name],
-          latestDate: job.createdAt as any,
-        });
-      } else {
-        const group = groups.get(key)!;
-        group.roomNames.push((job.room as any).name);
-        if (job.createdAt > group.latestDate) {
-          group.canonical = job;
-          group.latestDate = job.createdAt as any;
-        }
-      }
-    }
-
-    const dedupedJobs = Array.from(groups.values())
-      .map((g) => ({
-        ...g.canonical.toObject(),
-        postedInRooms: g.roomNames,
-      }))
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    const dedupedJobs = await getDedupedAccessibleJobs(req.user?._id as string, extraFilter);
 
     res.status(200).json({ jobs: dedupedJobs });
   } catch (err: any) {

@@ -1,7 +1,6 @@
 import {
   Briefcase,
   Building2,
-  Check,
   ChevronDown,
   Globe2,
   IndianRupee,

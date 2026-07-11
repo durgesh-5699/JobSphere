@@ -1,17 +1,23 @@
-import { GraduationCap, SearchX } from "lucide-react";
+import { GraduationCap, SearchX, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
 import JobCard from "../components/jobCard";
 import { useCallback, useEffect, useRef, useState } from "react";
 import FilterBar from "../components/FilterBar";
-import type { Job } from "../types/types.ts";
+import type { Job, Recommendation } from "../types/types.ts";
 import { fetchJobs, fetchJobLocations } from "../services/jobService";
+import { fetchRecommendedJobs } from "../services/matchService.ts";
+import RecommendedJobCard from "../components/RecommendedJobCard.tsx";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 14 },
   show: (i: number = 0) => ({
     opacity: 1,
     y: 0,
-    transition: { duration: 0.4, delay: Math.min(i, 8) * 0.05, ease: [0.22, 1, 0.36, 1] as const },
+    transition: {
+      duration: 0.4,
+      delay: Math.min(i, 8) * 0.05,
+      ease: [0.22, 1, 0.36, 1] as const,
+    },
   }),
 };
 
@@ -20,8 +26,8 @@ const LIMIT = 9;
 export default function Dashboard() {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [total, setTotal] = useState(0);
-  const [loading, setLoading] = useState(true);        // initial / filter-change load
-  const [loadingMore, setLoadingMore] = useState(false); // subsequent page loads
+  const [loading, setLoading] = useState(true); 
+  const [loadingMore, setLoadingMore] = useState(false); 
   const [hasMore, setHasMore] = useState(true);
   const [page, setPage] = useState(1);
 
@@ -31,6 +37,27 @@ export default function Dashboard() {
   const [locations, setLocations] = useState<string[]>([]);
 
   const observerRef = useRef<IntersectionObserver | null>(null);
+
+  const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
+  const [recsLoading, setRecsLoading] = useState(true);
+  const [profileIncomplete, setProfileIncomplete] = useState(false);
+
+  useEffect(() => {
+    loadRecommendations();
+  }, []);
+
+  const loadRecommendations = async () => {
+    try {
+      setRecsLoading(true);
+      const data = await fetchRecommendedJobs();
+      setRecommendations(data.recommendations);
+      setProfileIncomplete(!!data.profileIncomplete);
+    } catch (err) {
+      console.error("Failed to fetch recommendations", err);
+    } finally {
+      setRecsLoading(false);
+    }
+  };
 
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearch(search), 400);
@@ -62,7 +89,6 @@ export default function Dashboard() {
       setHasMore(data.hasMore);
       setTotal(data.total);
       setPage(pageToLoad);
-
     } catch (err: any) {
       console.log("failed to fetch jobs", err.message);
     } finally {
@@ -84,13 +110,18 @@ export default function Dashboard() {
 
       if (node) observerRef.current.observe(node);
     },
-    [loading, loadingMore, hasMore, page, debouncedSearch, location]
+    [loading, loadingMore, hasMore, page, debouncedSearch, location],
   );
 
   return (
     <div className="bg-[#F6F5F2] min-h-[calc(100vh-73px)]">
       <div className="max-w-7xl mx-auto px-6 py-10">
-        <motion.div variants={fadeUp} initial="hidden" animate="show" custom={0}>
+        <motion.div
+          variants={fadeUp}
+          initial="hidden"
+          animate="show"
+          custom={0}
+        >
           <div className="inline-flex items-center gap-2 bg-[#FBF3E3] border border-[#EADFC4] rounded-full px-4 py-1.5 mb-4">
             <GraduationCap size={13} className="text-[#C08B2C]" />
             <span className="font-mono text-[11px] font-semibold text-[#8A6316] tracking-[0.1em]">
@@ -105,7 +136,41 @@ export default function Dashboard() {
           </p>
         </motion.div>
 
-        <motion.div variants={fadeUp} initial="hidden" animate="show" custom={1}>
+        {/* Recommendations section */}
+        {!recsLoading && (
+          <div className="mb-10">
+            <div className="flex items-center gap-2 mb-4">
+              <Sparkles size={18} className="text-amber-500" />
+              <h2 className="font-display font-bold text-slate-900">
+                Jobs you might like
+              </h2>
+            </div>
+
+            {profileIncomplete ? (
+              <div className="bg-amber-50 border border-amber-100 rounded-2xl p-5 text-sm text-amber-800">
+                Complete your profile (skills, experience, or projects) to get
+                personalized recommendations.
+              </div>
+            ) : recommendations.length > 0 ? (
+              <div className="flex gap-4 overflow-x-auto pb-2 -mx-6 px-6">
+                {recommendations.map((rec) => (
+                  <RecommendedJobCard key={rec.jobId} rec={rec} />
+                ))}
+              </div>
+            ) : (
+              <p className="text-slate-400 italic text-sm">
+                No recommendations available right now.
+              </p>
+            )}
+          </div>
+        )}
+
+        <motion.div
+          variants={fadeUp}
+          initial="hidden"
+          animate="show"
+          custom={1}
+        >
           <FilterBar
             search={search}
             setSearch={setSearch}
@@ -161,14 +226,20 @@ export default function Dashboard() {
           </>
         ) : (
           <motion.div
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.3 }}
             className="flex flex-col items-center justify-center text-center py-24"
           >
             <div className="w-12 h-12 rounded-full bg-[#EAF1EE] flex items-center justify-center mb-4">
               <SearchX size={20} className="text-[#2F5D50]" />
             </div>
-            <p className="font-display font-semibold text-[#12151C] mb-1">No roles match your search</p>
-            <p className="text-sm text-[#12151C]/45">Try clearing a filter or searching a different skill.</p>
+            <p className="font-display font-semibold text-[#12151C] mb-1">
+              No roles match your search
+            </p>
+            <p className="text-sm text-[#12151C]/45">
+              Try clearing a filter or searching a different skill.
+            </p>
           </motion.div>
         )}
       </div>
