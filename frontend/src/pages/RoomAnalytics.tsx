@@ -209,7 +209,7 @@ export default function RoomAnalyticsPage() {
             </div>
             {data.topPosters.length > 0 ? (
               <div className="space-y-2.5">
-                {data.topPosters.map((p, i) => (
+                {data.topPosters.map((p:any, i:any) => (
                   <div
                     key={i}
                     className="flex items-center gap-3 bg-[#F6F5F2] border border-[#E4E2DC] rounded-xl p-3"
