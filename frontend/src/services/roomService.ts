@@ -1,5 +1,5 @@
 import axios from "axios";
-import type { Room, RoomMember, RoomMembership } from "../types/room.types";
+import type { Room, RoomMember, RoomMembership } from "../types/types.ts";
 
 export const createRoom = async(data:{
     name:string;

@@ -1,5 +1,5 @@
 import axios from "axios";
-import type { ParsedResumeData, Profile } from "../types/profile.type";
+import type { ParsedResumeData, Profile } from "../types/types.ts";
 
 export const fetchMyProfile=async():Promise<Profile>=>{
     const res = await axios.get("/api/profile/me");

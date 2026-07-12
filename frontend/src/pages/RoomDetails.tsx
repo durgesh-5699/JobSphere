@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import {
   Globe, Lock, Users, Check, X, Clock, Settings, Briefcase,
-  Save, Trash2, Crown, ArrowLeft, UserPlus,
+  Save, Trash2, Crown, ArrowLeft, UserPlus, BarChart3,
 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
@@ -11,7 +11,7 @@ import {
 } from "../services/roomService";
 import useAuth from "../context/useAuth";
 import JobCard from "../components/jobCard";
-import type { Room, RoomMember } from "../types/room.types";
+import type { Room, RoomMember } from "../types/types.ts";
 import type { Job } from "../types/types.ts";
 
 const fadeUp = {
@@ -40,7 +40,7 @@ const avatarColorFor = (name: string) => {
   return avatarPalette[idx];
 };
 
-export default function RoomDetail(){
+export default function RoomDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -111,7 +111,7 @@ export default function RoomDetail(){
     try {
       await respondToRequest(id, membershipId, action);
       setRequests((prev) => prev.filter((r) => r._id !== membershipId));
-      loadRoom(id); 
+      loadRoom(id);
     } catch (err) {
       console.error("Failed to respond to request", err);
     }
@@ -189,7 +189,6 @@ export default function RoomDetail(){
           Back to rooms
         </motion.button>
 
-        {/* Hero */}
         <motion.div
           variants={fadeUp} initial="hidden" animate="show" custom={1}
           className="relative bg-white border border-[#E4E2DC] rounded-2xl p-6 sm:p-8 mb-5 overflow-hidden"
@@ -247,7 +246,6 @@ export default function RoomDetail(){
               )}
             </div>
 
-            {/* Stat tiles */}
             <div className="flex sm:flex-col gap-3 sm:w-32 flex-shrink-0">
               <div className="flex-1 sm:flex-none bg-[#F6F5F2] border border-[#EDEBE5] rounded-xl px-4 py-3 text-center">
                 <p className="font-display text-xl font-semibold text-[#12151C]">{members.length}</p>
@@ -276,6 +274,14 @@ export default function RoomDetail(){
                   <Settings size={15} className="text-[#2F5D50]" />
                   <p className="font-mono text-[10px] font-semibold text-[#12151C]/35 uppercase tracking-[0.15em]">Room settings</p>
                 </div>
+
+                <Link
+                  to={`/rooms/${id}/analytics`}
+                  className="flex items-center justify-center gap-2 bg-[#EAF1EE] hover:bg-[#D3E3DC] text-[#2F5D50] font-semibold text-xs py-2.5 rounded-lg transition-colors mb-3"
+                >
+                  <BarChart3 size={14} />
+                  View analytics
+                </Link>
 
                 <AnimatePresence>
                   {settingsError && (
@@ -496,4 +502,4 @@ export default function RoomDetail(){
       </div>
     </div>
   );
-};
+}

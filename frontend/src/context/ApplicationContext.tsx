@@ -1,5 +1,5 @@
 import { createContext, useEffect, useState } from "react";
-import type { Application, ApplicationContextType } from "../types/application.types";
+import type { Application, ApplicationContextType } from "../types/types.ts";
 import { applyToJobAPI, fetchMyApplicaions } from "../services/applicationService";
 import useAuth from "./useAuth";
 

@@ -1,5 +1,5 @@
 import { createContext, useEffect, useState } from "react";
-import type {AuthContextType, User} from "../types/user.types";
+import type {AuthContextType, User} from "../types/types.ts";
 import axios from "axios";
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);

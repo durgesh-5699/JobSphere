@@ -18,6 +18,7 @@ import ForgotPassword from "./pages/ForgetPassword";
 import ResetPassword from "./pages/ResetPassword";
 import PublicRoute from "./pages/PublicRoute";
 import SavedJobs from "./pages/savedJobs";
+import RoomAnalyticsPage from "./pages/RoomAnalytics";
 
 export default function App() {
   return (
@@ -44,9 +45,11 @@ export default function App() {
             <Route path="/saved-jobs" element={<SavedJobs />} />
 
             <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/users/:userId" element={<UserProfileView />} />
+            
             <Route path="/rooms" element={<Rooms />} />
             <Route path="/rooms/:id" element={<RoomDetails />} />
-            <Route path="/users/:userId" element={<UserProfileView />} />
+            <Route path="/rooms/:id/analytics" element={<RoomAnalyticsPage />} />
           </Route>
           
         </Routes>

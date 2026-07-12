@@ -18,7 +18,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { createJob } from "../services/jobService";
 import { parseJobInput } from "../services/aiService";
 import { fetchMyRooms, fetchPublicRooms } from "../services/roomService";
-import type { Room } from "../types/room.types";
+import type { Room } from "../types/types.ts";
 
 interface JobFormData {
   title: string;

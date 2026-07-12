@@ -6,7 +6,7 @@ import {
   fetchMyRooms,
   createRoom,
 } from "../services/roomService";
-import type { Room } from "../types/room.types";
+import type { Room } from "../types/types.ts";
 import RoomCard from "../components/roomCard";
 import { searchRooms } from "../services/roomService";
 

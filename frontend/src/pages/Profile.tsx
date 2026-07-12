@@ -2,9 +2,9 @@ import { useState, useEffect, useMemo, type FormEvent, type KeyboardEvent } from
 import { AnimatePresence, motion } from "framer-motion";
 import {Phone,MapPin,Mail,Link2,Code2,Globe,FileText,Upload,Plus,X,GraduationCap,Briefcase,FolderGit2,Save,Pencil,ExternalLink,Sparkles,CheckCircle2,} from "lucide-react";
 import { fetchMyProfile, updateMyProfile, uploadResume } from "../services/profileService";
-import type { ParsedResumeData } from "../types/profile.type";
+import type { ParsedResumeData } from "../types/types.ts";
 import useAuth from "../context/useAuth";
-import type { Profile, Education, Experience, Project } from "../types/profile.type";
+import type { Profile, Education, Experience, Project } from "../types/types.ts";
 
 const emptyEducation: Education = { degree: "", institution: "", year: "" };
 const emptyExperience: Experience = { role: "", company: "", duration: "", description: "" };

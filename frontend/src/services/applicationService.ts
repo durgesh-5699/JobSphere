@@ -1,5 +1,5 @@
 import axios from "axios";
-import type { Application } from "../types/application.types";
+import type { Application } from "../types/types.ts";
 
 export const applyToJobAPI =async(jobId:string):Promise<Application>=>{
     const res = await axios.post("/api/applications",{jobId});

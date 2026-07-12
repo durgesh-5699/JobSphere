@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import type { Room } from "../types/room.types";
+import type { Room } from "../types/types.ts";
 import { Globe, Lock, Users, ArrowUpRight } from "lucide-react";
 import { motion } from "framer-motion";
 
