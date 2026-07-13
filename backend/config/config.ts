@@ -41,6 +41,18 @@ if(!process.env.BREVO_API_KEY){
     throw new Error("BREVO_API_KEY is not defined");
 }
 
+if(!process.env.ADMIN_EMAIL){
+    throw new Error("ADMIN_EMAIL is not defined");
+}
+
+if(!process.env.ADMIN_PASSWORD){
+    throw new Error("ADMIN_PASSWORD is not defined");
+}
+
+if(!process.env.ADMIN_NAME){
+    throw new Error("ADMIN_NAME is not defined");
+}
+
 
 
 const config = {
@@ -54,6 +66,10 @@ const config = {
     EMAIL_USER : process.env.EMAIL_USER,
     EMAIL_PASS : process.env.EMAIL_PASS,
     BREVO_API_KEY : process.env.BREVO_API_KEY,
+    ADMIN_EMAIL : process.env.ADMIN_EMAIL,
+    ADMIN_PASSWORD : process.env.ADMIN_PASSWORD,
+    ADMIN_NAME : process.env.ADMIN_NAME
+
 };
 
 export default config ;
