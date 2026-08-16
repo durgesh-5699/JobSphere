@@ -1,4 +1,7 @@
 import express from "express"
+import dns from "node:dns/promises"
+dns.setServers(["8.8.8.8", "1.1.1.1"])
+
 import cors from "cors"
 import config from "./config/config.ts";
 import connectDB from "./config/db.ts";
@@ -10,7 +13,7 @@ import applicationRouter from "./routes/applicationRoutes.ts";
 import aiRouter from "./routes/aiRoutes.ts";
 import profileRouter from "./routes/profileRoutes.ts";
 import roomRouter from "./routes/roomRoutes.ts";
-import dns from "dns"
+import adminRoutes from "./routes/adminRoutes.ts";
 import notificationRouter from "./routes/notificationRoutes.ts";
 import { startDeadlineReminderCron } from "./jobs/deadlineReminder.ts";
 import bookmarkRouter from "./routes/bookmarkRoutes.ts";
@@ -24,10 +27,10 @@ app.use(cookieParser());
 app.use(morgan("dev"));
 
 app.use(cors({
-    origin : config.CLIENT_URL,
+    origin : [config.CLIENT_URL, config.CLIENT_URL2],
     credentials:true
 }));
-
+app.use('/api/admin', adminRoutes);
 app.use("/api/auth",authRouter);
 app.use("/api/jobs",jobRouter);
 app.use("/api/applications",applicationRouter);

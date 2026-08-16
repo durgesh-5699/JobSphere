@@ -1,5 +1,6 @@
 import { Request } from "express";
 import { IJob } from "../models/jobModel";
+import "express"
 
 declare global {
   namespace Express {

@@ -1,8 +1,7 @@
 import { useState, type FormEvent } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Mail, Lock, Eye, EyeOff, ArrowRight, Sparkles, ShieldAlert } from "lucide-react";
 import { motion } from "framer-motion";
-import useAuth from "../context/useAuth";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 16 },
@@ -20,12 +19,7 @@ export default function Login() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const { user, login } = useAuth();
   const navigate = useNavigate();
-
-  if (user) {
-    navigate(-1);
-  }
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -33,10 +27,36 @@ export default function Login() {
     setLoading(true);
 
     try {
-      await login(email, password);
+      // NOTE: Ensure this URL matches your backend's port and route!
+      // If your standard login route is '/api/users/login' or '/api/auth/login', change it here.
+     const response = await fetch("http://localhost:5000/api/admin/login", { 
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({ email, password }),
+});
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Invalid admin credentials");
+      }
+
+      // 1. Check if the user is actually an admin before letting them in
+      if (data.user.role !== "admin") {
+        throw new Error("Access denied. Admin privileges required.");
+      }
+
+      // 2. Save the auth token and user data to localStorage
+      localStorage.setItem("adminToken", data.token);
+      localStorage.setItem("adminUser", JSON.stringify(data.user));
+
+      // 3. Redirect to the main Admin Dashboard
       navigate("/");
+      
     } catch (err: any) {
-      setError(err.response?.data?.message || "Login failed. Check your credentials.");
+      setError(err.message || "Login failed. Check your admin credentials.");
     } finally {
       setLoading(false);
     }
@@ -44,7 +64,8 @@ export default function Login() {
 
   return (
     <div className="min-h-screen grid lg:grid-cols-2 bg-[#F6F5F2] overflow-hidden">
-     
+      
+      {/* Left Side: Admin Branding */}
       <div className="hidden lg:flex relative flex-col justify-between p-12 overflow-hidden">
         
         <div className="absolute inset-0">
@@ -67,24 +88,21 @@ export default function Login() {
           className="relative z-10"
         >
           <div className="inline-flex items-center gap-2 bg-white/70 backdrop-blur-xl border border-white/80 rounded-full px-4 py-1.5 mb-8 shadow-[0_4px_20px_rgba(47,93,80,0.1)]">
-            <Sparkles size={14} className="text-[#2F5D50]" />
+            <ShieldAlert size={14} className="text-[#2F5D50]" />
             <span className="font-mono text-xs font-semibold text-[#12151C]/70 uppercase tracking-[0.15em]">
-              Welcome back
+              Secure Portal
             </span>
           </div>
 
           <h1 className="font-display text-5xl font-bold leading-[1.1] mb-5 tracking-tight">
-            <span className="text-[#12151C]">Your batchmates</span>
+            <span className="text-[#12151C]">jobSphere</span>
             <br />
             <span className="bg-gradient-to-r from-[#2F5D50] via-[#3D7A68] to-[#8A6316] bg-clip-text text-transparent">
-              have posted
+              Admin Dashboard
             </span>
-            <br />
-            <span className="text-[#12151C]">since you left.</span>
           </h1>
           <p className="text-[#12151C]/50 text-base max-w-sm leading-relaxed">
-            Log back in to see what's new — new roles, new companies, new
-            deadlines to catch.
+            Log in to manage users, monitor platform activity, and moderate job postings across all rooms.
           </p>
         </motion.div>
 
@@ -93,22 +111,17 @@ export default function Login() {
           className="relative z-10 grid grid-cols-2 gap-4 max-w-sm"
         >
           <div className="bg-white/70 backdrop-blur-xl border border-white/80 rounded-2xl p-4 shadow-[0_4px_20px_rgba(18,21,28,0.05)] hover:bg-white/90 transition-colors">
-            <p className="font-display text-2xl font-bold text-[#12151C]">2,400+</p>
-            <p className="text-xs text-[#12151C]/50 mt-1">Open roles listed</p>
+            <p className="font-display text-2xl font-bold text-[#12151C]">Control</p>
+            <p className="text-xs text-[#12151C]/50 mt-1">User Management</p>
           </div>
           <div className="bg-white/70 backdrop-blur-xl border border-white/80 rounded-2xl p-4 shadow-[0_4px_20px_rgba(18,21,28,0.05)] hover:bg-white/90 transition-colors">
-            <p className="font-display text-2xl font-bold text-[#12151C]">180</p>
-            <p className="text-xs text-[#12151C]/50 mt-1">Companies hiring</p>
-          </div>
-          <div className="col-span-2 bg-gradient-to-r from-[#2F5D50] to-[#8A6316] rounded-2xl p-4 shadow-[0_8px_30px_rgba(47,93,80,0.3)]">
-            <p className="font-display text-2xl font-bold text-white">92%</p>
-            <p className="text-xs text-white/85 mt-1 font-medium leading-relaxed">
-              of shared roles get at least one applicant within 48 hrs
-            </p>
+            <p className="font-display text-2xl font-bold text-[#12151C]">Monitor</p>
+            <p className="text-xs text-[#12151C]/50 mt-1">Platform Activity</p>
           </div>
         </motion.div>
       </div>
 
+      {/* Right Side: Login Form */}
       <div className="relative flex items-center justify-center px-6 py-10 min-h-screen">
         <div className="absolute inset-0 lg:hidden">
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[500px] h-[500px] bg-[#2F5D50] rounded-full blur-[140px] opacity-[0.12]" />
@@ -124,10 +137,10 @@ export default function Login() {
           </span>
 
           <h2 className="font-display text-3xl font-bold text-[#12151C] mb-2 tracking-tight">
-            Welcome back
+            Admin Access
           </h2>
           <p className="text-[#12151C]/50 text-sm mb-8">
-            Log in to see today's openings.
+            Please verify your credentials.
           </p>
 
           {error && (
@@ -147,7 +160,7 @@ export default function Login() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                placeholder="you@college.edu"
+                placeholder="admin@college.edu"
                 className="w-full pl-11 pr-4 py-3.5 bg-[#F6F5F2] border border-[#E4E2DC] rounded-xl text-sm text-[#12151C] placeholder:text-[#12151C]/35 focus:outline-none focus:ring-2 focus:ring-[#2F5D50]/25 focus:border-[#2F5D50] transition-all"
               />
             </div>
@@ -174,44 +187,17 @@ export default function Login() {
               </button>
             </div>
 
-            <div className="flex justify-end">
-              <Link
-                to="/forgot-password    "
-                className="font-mono text-xs font-semibold text-[#2F5D50] hover:text-[#12151C] transition-colors"
-              >
-                Forgot password?
-              </Link>
-            </div>
-
             <motion.button
               whileTap={{ scale: 0.98 }}
               whileHover={{ scale: 1.01 }}
               type="submit"
               disabled={loading}
-              className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-[#2F5D50] to-[#8A6316] text-white font-semibold text-sm py-3.5 rounded-xl transition-shadow shadow-[0_4px_20px_rgba(47,93,80,0.35)] hover:shadow-[0_4px_28px_rgba(47,93,80,0.5)] disabled:opacity-50 mt-2"
+              className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-[#2F5D50] to-[#8A6316] text-white font-semibold text-sm py-3.5 rounded-xl transition-shadow shadow-[0_4px_20px_rgba(47,93,80,0.35)] hover:shadow-[0_4px_28px_rgba(47,93,80,0.5)] disabled:opacity-50 mt-6"
             >
-              {loading ? "Signing in..." : "Sign in"}
+              {loading ? "Verifying..." : "Access Dashboard"}
               {!loading && <ArrowRight size={16} />}
             </motion.button>
           </form>
-
-          <p className="text-center text-sm text-[#12151C]/45 mt-8">
-            New here?{" "}
-            <Link to="/register" className="text-[#2F5D50] font-semibold hover:text-[#12151C] transition-colors">
-              Create an account
-            </Link>
-            {/* Admin Portal Redirect Button */}
-
-<div className="mt-8 pt-6 border-t border-[#E4E2DC] flex justify-center">
-  <a
-    href={import.meta.env.VITE_ADMIN_URL} 
-    className="inline-flex items-center gap-2 text-sm text-[#12151C]/45 hover:text-[#2F5D50] transition-colors font-medium"
-  >
-    <ShieldAlert size={16} />
-    <span>Go to Admin Portal</span>
-  </a>
-</div>
-          </p>
         </motion.div>
       </div>
     </div>

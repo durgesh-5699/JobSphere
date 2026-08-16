@@ -9,6 +9,10 @@ if(!process.env.CLIENT_URL){
     throw new Error("CLIENT_URL is not defined");
 }
 
+if(!process.env.CLIENT_URL2){
+    throw new Error("CLIENT_URL2 is not defined");
+}
+
 if(!process.env.JWT_SECRET){
     throw new Error("JWT_SECRET is not defined");
 }
@@ -58,6 +62,7 @@ if(!process.env.ADMIN_NAME){
 const config = {
     MONGO_URI : process.env.MONGO_URI,
     CLIENT_URL : process.env.CLIENT_URL,
+    CLIENT_URL2 : process.env.CLIENT_URL2,
     JWT_SECRET : process.env.JWT_SECRET,
     GROQ_API_KEY : process.env.GROQ_API_KEY,
     CLOUDINARY_CLOUD_NAME : process.env.CLOUDINARY_CLOUD_NAME,

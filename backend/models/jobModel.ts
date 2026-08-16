@@ -24,11 +24,11 @@ const jobSchema = new mongoose.Schema<IJob>({
     location:{type:String,required:true,trim:true},
     skills:{type:[String],default:[]},
     salary:{type:String},
-    postedBy:{type:mongoose.Schema.Types.ObjectId,ref:"user",required:true},
+    postedBy:{type:mongoose.Schema.Types.ObjectId,ref:"User",required:true},
     room: {type:Schema.Types.ObjectId, ref:"Room", required:true},
     requirements : {type:[String], default :[]},
     deadline : {type:Date}
 },{timestamps:true});
 
-const Job = mongoose.model<IJob>("Job",jobSchema);
+export const Job = mongoose.model<IJob>("Job",jobSchema);
 export default Job;
