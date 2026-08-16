@@ -10,7 +10,6 @@ import {
 } from 'lucide-react';
 import axios from 'axios';
 
-// 1. Define the TypeScript interfaces based on your API spec
 interface Owner {
   _id: string;
   name: string;
@@ -31,7 +30,6 @@ export default function Rooms() {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  // 2. Fetch rooms on mount
   useEffect(() => {
     fetchRooms();
   }, []);
@@ -66,7 +64,6 @@ export default function Rooms() {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
-      {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Room Management</h1>
@@ -76,7 +73,6 @@ export default function Rooms() {
         </div>
       </div>
 
-      {/* Backend Limitation Warning */}
       <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 flex gap-3 text-sm text-blue-800 shadow-sm">
         <Info className="w-5 h-5 shrink-0 mt-0.5 text-blue-600" />
         <div>
@@ -87,7 +83,6 @@ export default function Rooms() {
         </div>
       </div>
 
-      {/* Main Content Area */}
       {isLoading ? (
         <div className="flex flex-col items-center justify-center py-20 text-gray-500 bg-white rounded-2xl border border-gray-100 shadow-sm">
           <Loader2 className="w-8 h-8 animate-spin text-[#3b6051] mb-4" />
@@ -113,7 +108,6 @@ export default function Rooms() {
               key={room._id} 
               className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow flex flex-col h-full"
             >
-              {/* Card Header: Name and Status */}
               <div className="flex items-start justify-between gap-4 mb-3">
                 <h2 className="text-xl font-bold text-gray-900 line-clamp-1" title={room?.name}>
                   {room?.name}
@@ -131,12 +125,10 @@ export default function Rooms() {
                 )}
               </div>
 
-              {/* Card Body: Description */}
               <p className="text-sm text-gray-600 mb-6 flex-1 line-clamp-3">
                 {room?.description}
               </p>
 
-              {/* Card Footer: Metadata */}
               <div className="pt-4 border-t border-gray-50 space-y-2 text-xs font-medium text-gray-500">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-1.5">

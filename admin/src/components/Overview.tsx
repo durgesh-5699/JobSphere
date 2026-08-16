@@ -28,7 +28,6 @@ export default function Overview() {
     }
   };
 
-  // Show loading spinner while fetching
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center py-32 text-gray-400">
@@ -38,7 +37,6 @@ export default function Overview() {
     );
   }
 
-  // Show error if fetch fails
   if (error) {
     return (
       <div className="bg-red-50 text-red-600 p-4 rounded-xl border border-red-100 flex justify-between items-center">
@@ -50,7 +48,6 @@ export default function Overview() {
     );
   }
 
-  // Calculate total recent users from the trend array safely
   const recentUsers = dashboardData?.newUsersTrend?.reduce((sum: number, day: any) => sum + (day.users || 0), 0) || 0;
 
   const stats = [
@@ -80,7 +77,6 @@ export default function Overview() {
     },
   ];
 
-  // Note: We are leaving this hardcoded for now since there is no API endpoint for "recent activity" yet.
   const recentActivity = [
     { id: 1, action: 'New role posted', subject: 'Software Engineer at TechCorp', time: '2 hours ago' },
     { id: 2, action: 'Company onboarded', subject: 'Global Innovations Inc.', time: '5 hours ago' },
@@ -91,7 +87,6 @@ export default function Overview() {
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
       
-      {/* Welcome Banner */}
       <div className="bg-gradient-to-r from-[#2a4539] to-[#826229] rounded-2xl p-8 text-white shadow-sm flex items-center justify-between">
         <div>
           <span className="inline-block px-3 py-1 bg-white/20 backdrop-blur-sm rounded-full text-xs font-semibold tracking-wider uppercase mb-3">
@@ -104,7 +99,6 @@ export default function Overview() {
         </div>
       </div>
 
-      {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {stats.map((stat, index) => {
           const Icon = stat.icon;
@@ -131,7 +125,6 @@ export default function Overview() {
         })}
       </div>
 
-      {/* Recent Activity Section */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
         <div className="px-6 py-5 border-b border-gray-100 flex justify-between items-center">
           <h2 className="text-lg font-bold text-gray-900">Recent Activity</h2>

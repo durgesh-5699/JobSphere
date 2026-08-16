@@ -8,10 +8,10 @@ import Application from "../models/applicationModel.ts";
 export const getRoomAnalytics = async (req: Request, res: Response) => {
   try {
     const room = await Room.findById(req.params.id);
-    if(!room){
+    if (!room) {
       return res.status(404).json({ message: "Room not found" });
     }
-    if(room.owner.toString() !== req.user?._id?.toString()){
+    if (room.owner.toString() !== req.user?._id?.toString()) {
       return res.status(403).json({ message: "Not authorized" });
     }
 
@@ -35,7 +35,12 @@ export const getRoomAnalytics = async (req: Request, res: Response) => {
       },
       { $sort: { _id: 1 } },
     ]);
-    const jobsOverTime = jobsOverTimeRaw.map((d) => ({ date: d._id, jobs: d.count }));
+
+    let jobsRunningTotal = 0;
+    const jobsOverTime = jobsOverTimeRaw.map((d) => {
+      jobsRunningTotal += d.count;
+      return { date: d._id, jobs: jobsRunningTotal };
+    });
 
     const memberGrowthRaw = await RoomMembership.aggregate([
       { $match: { room: roomId, status: "approved", createdAt: { $gte: thirtyDaysAgo } } },
@@ -47,7 +52,12 @@ export const getRoomAnalytics = async (req: Request, res: Response) => {
       },
       { $sort: { _id: 1 } },
     ]);
-    const memberGrowth = memberGrowthRaw.map((d) => ({ date: d._id, members: d.count }));
+
+    let membersRunningTotal = 0;
+    const memberGrowth = memberGrowthRaw.map((d) => {
+      membersRunningTotal += d.count;
+      return { date: d._id, members: membersRunningTotal };
+    });
 
     const topPostersRaw = await Job.aggregate([
       { $match: { room: roomId } },

@@ -133,7 +133,6 @@ export default function Rooms() {
           </button>
         </motion.div>
 
-        {/* Search bar */}
         <motion.div variants={fadeUp} initial="hidden" animate="show" custom={1} className="relative mb-8">
           <Search size={17} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#12151C]/30" />
           <input
@@ -145,7 +144,6 @@ export default function Rooms() {
           />
         </motion.div>
 
-        {/* Search results */}
         <AnimatePresence mode="wait">
           {searchQuery.trim().length >= 2 && (
             <motion.div
@@ -220,7 +218,6 @@ export default function Rooms() {
         )}
       </div>
 
-      {/* Create room modal */}
       <AnimatePresence>
         {showCreateModal && (
           <motion.div

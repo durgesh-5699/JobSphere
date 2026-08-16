@@ -16,7 +16,6 @@ export default function RoomCard({ room, isMember }: { room: Room; isMember: boo
         to={`/rooms/${room._id}`}
         className="group relative flex h-full flex-col bg-white border border-[#E4E2DC] rounded-2xl p-5 overflow-hidden hover:border-[#2F5D50]/30 hover:shadow-[0_16px_32px_-16px_rgba(18,21,28,0.18)] transition-shadow"
       >
-        {/* Corner accent, reveals on hover */}
         <div className="absolute -right-6 -top-6 w-20 h-20 rounded-full bg-[#EAF1EE] opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
         <div className="relative flex items-start gap-3 mb-3">

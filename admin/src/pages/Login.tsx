@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
-import { Mail, Lock, Eye, EyeOff, ArrowRight, Sparkles, ShieldAlert } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff, ArrowRight, ShieldAlert } from "lucide-react";
 import { motion } from "framer-motion";
 
 const fadeUp = {
@@ -27,8 +27,6 @@ export default function Login() {
     setLoading(true);
 
     try {
-      // NOTE: Ensure this URL matches your backend's port and route!
-      // If your standard login route is '/api/users/login' or '/api/auth/login', change it here.
      const response = await fetch("http://localhost:5000/api/admin/login", { 
   method: "POST",
   headers: {
@@ -43,16 +41,13 @@ export default function Login() {
         throw new Error(data.message || "Invalid admin credentials");
       }
 
-      // 1. Check if the user is actually an admin before letting them in
       if (data.user.role !== "admin") {
         throw new Error("Access denied. Admin privileges required.");
       }
 
-      // 2. Save the auth token and user data to localStorage
       localStorage.setItem("adminToken", data.token);
       localStorage.setItem("adminUser", JSON.stringify(data.user));
 
-      // 3. Redirect to the main Admin Dashboard
       navigate("/");
       
     } catch (err: any) {
@@ -65,7 +60,6 @@ export default function Login() {
   return (
     <div className="min-h-screen grid lg:grid-cols-2 bg-[#F6F5F2] overflow-hidden">
       
-      {/* Left Side: Admin Branding */}
       <div className="hidden lg:flex relative flex-col justify-between p-12 overflow-hidden">
         
         <div className="absolute inset-0">
@@ -121,7 +115,6 @@ export default function Login() {
         </motion.div>
       </div>
 
-      {/* Right Side: Login Form */}
       <div className="relative flex items-center justify-center px-6 py-10 min-h-screen">
         <div className="absolute inset-0 lg:hidden">
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[500px] h-[500px] bg-[#2F5D50] rounded-full blur-[140px] opacity-[0.12]" />

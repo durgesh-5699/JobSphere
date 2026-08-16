@@ -136,7 +136,6 @@ export default function Dashboard() {
           </p>
         </motion.div>
 
-        {/* Recommendations section */}
         {!recsLoading && (
           <div className="mb-10">
             <div className="flex items-center gap-2 mb-4">

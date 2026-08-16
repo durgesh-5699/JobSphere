@@ -12,7 +12,6 @@ import {
 import axios from 'axios';
 
 export default function Jobs() {
-  // 1. Initialize strictly as an empty array
   const [jobs, setJobs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -30,13 +29,11 @@ export default function Jobs() {
       
       console.log("Backend Response Data:", response.data);
       
-      // 2. Safely set state. If response.data.jobs is missing, default to []
       setJobs(response.data?.jobs || []);
       setError("");
     } catch (err: any) {
       console.error("Error fetching jobs:", err);
       setError("Failed to load job postings. Please try again.");
-      // 3. Ensure it stays an array even on error!
       setJobs([]); 
     } finally {
       setLoading(false);
@@ -76,7 +73,7 @@ export default function Jobs() {
             Retry
           </button>
         </div>
-      ) : (!jobs || jobs.length === 0) ? ( // 4. THIS IS THE LINE THAT CRASHED! Now safely checking if jobs exists first.
+      ) : (!jobs || jobs.length === 0) ? ( 
         <div className="text-center py-20 bg-white rounded-2xl border border-gray-100 shadow-sm">
           <p className="text-gray-500">No jobs have been posted yet.</p>
         </div>

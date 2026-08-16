@@ -200,7 +200,6 @@ export default function Login() {
             <Link to="/register" className="text-[#2F5D50] font-semibold hover:text-[#12151C] transition-colors">
               Create an account
             </Link>
-            {/* Admin Portal Redirect Button */}
 
 <div className="mt-8 pt-6 border-t border-[#E4E2DC] flex justify-center">
   <a

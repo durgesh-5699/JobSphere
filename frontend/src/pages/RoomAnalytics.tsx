@@ -1,25 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import {
-  AreaChart,
-  Area,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  CartesianGrid,
-} from "recharts";
-import {
-  ArrowLeft,
-  Users,
-  Briefcase,
-  Send,
-  TrendingUp,
-  Trophy,
-  Award,
-} from "lucide-react";
+import { AreaChart,Area,BarChart,Bar,XAxis,YAxis,Tooltip,ResponsiveContainer,CartesianGrid } from "recharts";
+import { ArrowLeft,Users,Briefcase,Send,TrendingUp,Trophy,Award } from "lucide-react";
 import { motion } from "framer-motion";
 import { fetchRoomAnalytics } from "../services/analyticsService";
 import type { RoomAnalytics } from "../types/types";
@@ -118,7 +100,6 @@ export default function RoomAnalyticsPage() {
           </p>
         </motion.div>
 
-        {/* Stat cards */}
         <div className="grid sm:grid-cols-3 gap-4 mb-6">
           <motion.div
             variants={fadeUp}
@@ -169,7 +150,6 @@ export default function RoomAnalyticsPage() {
           </motion.div>
         </div>
 
-        {/* Charts row */}
         <div className="grid md:grid-cols-2 gap-5 mb-5">
           <motion.div
             variants={fadeUp}
@@ -312,7 +292,6 @@ export default function RoomAnalyticsPage() {
           </motion.div>
         </div>
 
-        {/* Top posters + Top jobs */}
         <div className="grid md:grid-cols-2 gap-5">
           <motion.div
             variants={fadeUp}

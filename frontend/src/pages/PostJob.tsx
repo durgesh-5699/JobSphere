@@ -611,7 +611,6 @@ export default function PostJob() {
             </p>
           </div>
 
-          {/* Requirements — tag input, skills jaisa hi pattern */}
           <div>
             <label className={labelClass}>
               Eligibility / Requirements{" "}

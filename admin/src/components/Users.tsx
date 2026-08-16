@@ -10,13 +10,12 @@ import {
 } from 'lucide-react';
 import axios from 'axios';
 
-// 1. Define the TypeScript interface for a User
 interface User {
   _id: string;
   name: string;
   email: string;
   role: string;
-  isVerified?: boolean; // Made optional depending on your backend schema
+  isVerified?: boolean; 
   createdAt: string;
 }
 
@@ -25,14 +24,11 @@ export default function Users() {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   
-  // State for tracking which user's role is currently being updated
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   
-  // State for the delete confirmation modal
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
   const [isDeleting, setIsDeleting] = useState<boolean>(false);
 
-  // 2. Fetch users on mount
   useEffect(() => {
     fetchUsers();
   }, []);
@@ -56,7 +52,6 @@ export default function Users() {
     }
   };
 
-  // 3. Connect Role Change to Backend
   const handleRoleChange = async (userId: string, newRole: string) => {
     try {
       setUpdatingId(userId);
@@ -67,7 +62,6 @@ export default function Users() {
         { withCredentials: true }
       );
 
-      // Update local state with the newly updated user from the database
       setUsers(prevUsers => prevUsers.map(user => 
         user._id === userId ? { ...user, role: response.data.user.role } : user
       ));
@@ -80,7 +74,6 @@ export default function Users() {
     }
   };
 
-  // 4. Connect User Deletion to Backend
   const confirmDelete = async () => {
     if (!userToDelete) return;
     
@@ -91,7 +84,6 @@ export default function Users() {
         withCredentials: true
       });
 
-      // Remove user from local state instantly after successful backend deletion
       setUsers(prevUsers => prevUsers.filter(u => u._id !== userToDelete._id));
       setUserToDelete(null); 
     } catch (err: any) {
@@ -111,7 +103,6 @@ export default function Users() {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
-      {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">User Management</h1>
@@ -121,7 +112,6 @@ export default function Users() {
         </div>
       </div>
 
-      {/* Main Content Area */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
         {isLoading ? (
           <div className="flex flex-col items-center justify-center py-20 text-gray-500">
@@ -157,7 +147,6 @@ export default function Users() {
                 {users.map((user) => (
                   <tr key={user._id} className="hover:bg-[#f6f7f6]/50 transition-colors">
                     
-                    {/* User Info */}
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#3b6051] to-[#2a4539] flex items-center justify-center text-white font-bold shadow-inner">
@@ -170,7 +159,6 @@ export default function Users() {
                       </div>
                     </td>
 
-                    {/* Status */}
                     <td className="px-6 py-4 whitespace-nowrap">
                       {user.isVerified ? (
                         <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-green-50 text-green-700 text-xs font-semibold border border-green-100">
@@ -185,12 +173,10 @@ export default function Users() {
                       )}
                     </td>
 
-                    {/* Joined Date */}
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 font-medium">
                       {formatDate(user.createdAt)}
                     </td>
 
-                    {/* Role Management */}
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="relative inline-block">
                         <select
@@ -212,7 +198,6 @@ export default function Users() {
                       </div>
                     </td>
 
-                    {/* Actions */}
                     <td className="px-6 py-4 whitespace-nowrap text-right">
                       <button 
                         onClick={() => setUserToDelete(user)}
@@ -231,7 +216,6 @@ export default function Users() {
         )}
       </div>
 
-      {/* Delete Warning Modal */}
       {userToDelete && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/40 backdrop-blur-sm animate-in fade-in duration-200">
           <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 border border-gray-100">

@@ -9,7 +9,6 @@ export default function Footer(){
       <div className="max-w-7xl mx-auto px-6 py-5">
         <div className="grid grid-cols-1 md:grid-cols-3 items-center gap-4">
 
-          {/* Left */}
           <div className="flex items-center gap-3 justify-center md:justify-start">
             <Link
               to="/"
@@ -39,7 +38,6 @@ export default function Footer(){
             </span>
           </div>
 
-          {/* Center */}
           <div className="flex justify-center">
             <Link
               to="/privacy"
@@ -49,7 +47,6 @@ export default function Footer(){
             </Link>
           </div>
 
-          {/* Right */}
           <div className="flex items-center justify-center md:justify-end gap-4">
             <p className="font-mono text-xs text-[#12151C]/40">© {year} jobSphere.</p>
 
