@@ -1,13 +1,31 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import {
-  Globe, Lock, Users, Check, X, Clock, Settings, Briefcase,
-  Save, Trash2, Crown, ArrowLeft, UserPlus, BarChart3,
+  Globe,
+  Lock,
+  Users,
+  Check,
+  X,
+  Clock,
+  Settings,
+  Briefcase,
+  Save,
+  Trash2,
+  Crown,
+  ArrowLeft,
+  UserPlus,
+  BarChart3,
 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
-  fetchRoomById, joinRoom, fetchPendingRequests, respondToRequest,
-  fetchRoomMembers, updateRoom, removeMember, fetchRoomJobs,
+  fetchRoomById,
+  joinRoom,
+  fetchPendingRequests,
+  respondToRequest,
+  fetchRoomMembers,
+  updateRoom,
+  removeMember,
+  fetchRoomJobs,
 } from "../services/roomService";
 import useAuth from "../context/useAuth";
 import JobCard from "../components/jobCard";
@@ -19,7 +37,11 @@ const fadeUp = {
   show: (i: number = 0) => ({
     opacity: 1,
     y: 0,
-    transition: { duration: 0.4, delay: Math.min(i, 6) * 0.06, ease: [0.22, 1, 0.36, 1] as const },
+    transition: {
+      duration: 0.4,
+      delay: Math.min(i, 6) * 0.06,
+      ease: [0.22, 1, 0.36, 1] as const,
+    },
   }),
 };
 
@@ -35,8 +57,10 @@ const avatarPalette = [
   { bg: "#FBF3E3", fg: "#8A6316" },
   { bg: "#F1EEE8", fg: "#12151C" },
 ];
-const avatarColorFor = (name: string) => {
-  const idx = name.charCodeAt(0) % avatarPalette.length;
+
+const avatarColorFor = (name: string = "?") => {
+  const safeName = name || "?";
+  const idx = safeName.charCodeAt(0) % avatarPalette.length;
   return avatarPalette[idx];
 };
 
@@ -46,7 +70,9 @@ export default function RoomDetail() {
   const { user } = useAuth();
 
   const [room, setRoom] = useState<Room | null>(null);
-  const [myStatus, setMyStatus] = useState<"pending" | "approved" | "rejected" | null>(null);
+  const [myStatus, setMyStatus] = useState<
+    "pending" | "approved" | "rejected" | null
+  >(null);
   const [requests, setRequests] = useState<any[]>([]);
   const [members, setMembers] = useState<RoomMember[]>([]);
   const [jobs, setJobs] = useState<Job[]>([]);
@@ -106,7 +132,10 @@ export default function RoomDetail() {
     }
   };
 
-  const handleRespond = async (membershipId: string, action: "approve" | "reject") => {
+  const handleRespond = async (
+    membershipId: string,
+    action: "approve" | "reject",
+  ) => {
     if (!id) return;
     try {
       await respondToRequest(id, membershipId, action);
@@ -138,7 +167,10 @@ export default function RoomDetail() {
     }
   };
 
-  const handleRemoveMember = async (membershipId: string, memberName: string) => {
+  const handleRemoveMember = async (
+    membershipId: string,
+    memberName: string,
+  ) => {
     if (!id) return;
     const confirmed = window.confirm(`Remove ${memberName} from this room?`);
     if (!confirmed) return;
@@ -157,7 +189,9 @@ export default function RoomDetail() {
       <div className="min-h-[calc(100vh-73px)] bg-[#F6F5F2] flex items-center justify-center">
         <div className="flex items-center gap-3 text-[#12151C]/50">
           <span className="w-4 h-4 rounded-full border-2 border-[#12151C]/20 border-t-[#2F5D50] animate-spin" />
-          <span className="font-mono text-xs tracking-[0.15em] uppercase">Loading room</span>
+          <span className="font-mono text-xs tracking-[0.15em] uppercase">
+            Loading room
+          </span>
         </div>
       </div>
     );
@@ -167,7 +201,10 @@ export default function RoomDetail() {
     return (
       <div className="max-w-5xl mx-auto px-6 py-20 text-center">
         <p className="text-[#12151C]/45 mb-4">Room not found.</p>
-        <Link to="/rooms" className="text-[#2F5D50] font-semibold hover:text-[#12151C] transition-colors text-sm">
+        <Link
+          to="/rooms"
+          className="text-[#2F5D50] font-semibold hover:text-[#12151C] transition-colors text-sm"
+        >
           Back to rooms
         </Link>
       </div>
@@ -181,7 +218,10 @@ export default function RoomDetail() {
     <div className="bg-[#F6F5F2] min-h-[calc(100vh-73px)]">
       <div className="max-w-5xl mx-auto px-6 py-10">
         <motion.button
-          variants={fadeUp} initial="hidden" animate="show" custom={0}
+          variants={fadeUp}
+          initial="hidden"
+          animate="show"
+          custom={0}
           onClick={() => navigate(-1)}
           className="flex items-center gap-1.5 text-sm font-medium text-[#12151C]/50 hover:text-[#12151C] transition-colors mb-6"
         >
@@ -190,7 +230,10 @@ export default function RoomDetail() {
         </motion.button>
 
         <motion.div
-          variants={fadeUp} initial="hidden" animate="show" custom={1}
+          variants={fadeUp}
+          initial="hidden"
+          animate="show"
+          custom={1}
           className="relative bg-white border border-[#E4E2DC] rounded-2xl p-6 sm:p-8 mb-5 overflow-hidden"
         >
           <div className="absolute top-0 left-0 w-full h-[3px] bg-gradient-to-r from-[#2F5D50] via-[#C08B2C] to-[#2F5D50]" />
@@ -202,7 +245,9 @@ export default function RoomDetail() {
 
             <div className="flex-1">
               <div className="flex flex-wrap items-center gap-2 mb-1">
-                <h1 className="font-display text-2xl font-semibold text-[#12151C] tracking-tight">{room.name}</h1>
+                <h1 className="font-display text-2xl font-semibold text-[#12151C] tracking-tight">
+                  {room.name}
+                </h1>
                 {room.isPublic ? (
                   <span className="flex items-center gap-1 font-mono text-[10px] font-semibold tracking-wide text-[#12151C]/50 bg-[#F6F5F2] px-2.5 py-1 rounded-full">
                     <Globe size={12} /> PUBLIC
@@ -220,7 +265,9 @@ export default function RoomDetail() {
               </div>
 
               {room.description && (
-                <p className="text-sm text-[#12151C]/55 mb-4 max-w-md">{room.description}</p>
+                <p className="text-sm text-[#12151C]/55 mb-4 max-w-md">
+                  {room.description}
+                </p>
               )}
 
               {myStatus === "approved" && !isOwner && (
@@ -241,20 +288,28 @@ export default function RoomDetail() {
                   className="flex items-center gap-2 bg-[#12151C] hover:bg-[#2F5D50] text-white font-semibold text-sm px-5 py-2.5 rounded-xl transition-colors disabled:opacity-50"
                 >
                   <UserPlus size={16} />
-                  {joining ? "Joining..." : room.isPublic ? "Join room" : "Request to join"}
+                  {joining
+                    ? "Joining..."
+                    : room.isPublic
+                      ? "Join room"
+                      : "Request to join"}
                 </motion.button>
               )}
             </div>
 
             <div className="flex sm:flex-col gap-3 sm:w-32 flex-shrink-0">
               <div className="flex-1 sm:flex-none bg-[#F6F5F2] border border-[#EDEBE5] rounded-xl px-4 py-3 text-center">
-                <p className="font-display text-xl font-semibold text-[#12151C]">{members.length}</p>
+                <p className="font-display text-xl font-semibold text-[#12151C]">
+                  {members.length}
+                </p>
                 <p className="font-mono text-[9px] uppercase tracking-wide text-[#12151C]/40 flex items-center justify-center gap-1 mt-0.5">
                   <Users size={10} /> Members
                 </p>
               </div>
               <div className="flex-1 sm:flex-none bg-[#F6F5F2] border border-[#EDEBE5] rounded-xl px-4 py-3 text-center">
-                <p className="font-display text-xl font-semibold text-[#12151C]">{jobs.length}</p>
+                <p className="font-display text-xl font-semibold text-[#12151C]">
+                  {jobs.length}
+                </p>
                 <p className="font-mono text-[9px] uppercase tracking-wide text-[#12151C]/40 flex items-center justify-center gap-1 mt-0.5">
                   <Briefcase size={10} /> Jobs
                 </p>
@@ -267,12 +322,17 @@ export default function RoomDetail() {
           <div className="md:col-span-1 space-y-5">
             {isOwner && (
               <motion.div
-                variants={fadeUp} initial="hidden" animate="show" custom={2}
+                variants={fadeUp}
+                initial="hidden"
+                animate="show"
+                custom={2}
                 className="bg-white border border-[#E4E2DC] rounded-2xl p-6"
               >
                 <div className="flex items-center gap-2 mb-4">
                   <Settings size={15} className="text-[#2F5D50]" />
-                  <p className="font-mono text-[10px] font-semibold text-[#12151C]/35 uppercase tracking-[0.15em]">Room settings</p>
+                  <p className="font-mono text-[10px] font-semibold text-[#12151C]/35 uppercase tracking-[0.15em]">
+                    Room settings
+                  </p>
                 </div>
 
                 <Link
@@ -358,7 +418,10 @@ export default function RoomDetail() {
 
             {isOwner && requests.length > 0 && (
               <motion.div
-                variants={fadeUp} initial="hidden" animate="show" custom={3}
+                variants={fadeUp}
+                initial="hidden"
+                animate="show"
+                custom={3}
                 className="bg-white border border-[#E4E2DC] rounded-2xl p-6"
               >
                 <p className="font-mono text-[10px] font-semibold text-[#12151C]/35 uppercase tracking-[0.15em] mb-4">
@@ -371,20 +434,29 @@ export default function RoomDetail() {
                       return (
                         <motion.div
                           key={req._id}
-                          initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }}
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: "auto" }}
+                          exit={{ opacity: 0, height: 0 }}
                           transition={{ duration: 0.2 }}
                           className="bg-[#F6F5F2] border border-[#E4E2DC] rounded-xl p-3"
                         >
                           <div className="flex items-center gap-2.5 mb-2.5">
                             <div
                               className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-display font-semibold flex-shrink-0"
-                              style={{ backgroundColor: color.bg, color: color.fg }}
+                              style={{
+                                backgroundColor: color.bg,
+                                color: color.fg,
+                              }}
                             >
                               {req.user.name.charAt(0).toUpperCase()}
                             </div>
                             <div className="min-w-0">
-                              <p className="text-sm font-semibold text-[#12151C] truncate">{req.user.name}</p>
-                              <p className="text-xs text-[#12151C]/45 truncate">{req.user.email}</p>
+                              <p className="text-sm font-semibold text-[#12151C] truncate">
+                                {req.user.name}
+                              </p>
+                              <p className="text-xs text-[#12151C]/45 truncate">
+                                {req.user.email}
+                              </p>
                             </div>
                           </div>
                           <div className="flex items-center gap-2">
@@ -416,7 +488,10 @@ export default function RoomDetail() {
             )}
 
             <motion.div
-              variants={fadeUp} initial="hidden" animate="show" custom={4}
+              variants={fadeUp}
+              initial="hidden"
+              animate="show"
+              custom={4}
               className="bg-white border border-[#E4E2DC] rounded-2xl p-6"
             >
               <p className="font-mono text-[10px] font-semibold text-[#12151C]/35 uppercase tracking-[0.15em] mb-4">
@@ -426,33 +501,54 @@ export default function RoomDetail() {
                 <div className="space-y-2">
                   <AnimatePresence initial={false}>
                     {members.map((m) => {
-                      const color = avatarColorFor(m.user.name);
-                      const owner = m.user._id === room.owner;
+                      // Safe fallbacks for missing user data
+                      const userName = m.user?.name || "Unknown User";
+                      const userEmail = m.user?.email || "";
+                      const color = avatarColorFor(userName);
+                      const owner = m.user?._id === room.owner;
+
                       return (
                         <motion.div
                           key={m._id}
-                          initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }}
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: "auto" }}
+                          exit={{ opacity: 0, height: 0 }}
                           transition={{ duration: 0.2 }}
                           className="flex items-center justify-between bg-[#F6F5F2] border border-[#E4E2DC] rounded-xl p-3"
                         >
-                          <Link to={`/users/${m.user._id}`} className="flex items-center gap-2.5 flex-1 min-w-0">
+                          <Link
+                            to={m.user?._id ? `/users/${m.user._id}` : "#"}
+                            className="flex items-center gap-2.5 flex-1 min-w-0"
+                          >
                             <div
                               className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-display font-semibold flex-shrink-0"
-                              style={{ backgroundColor: color.bg, color: color.fg }}
+                              style={{
+                                backgroundColor: color.bg,
+                                color: color.fg,
+                              }}
                             >
-                              {m.user.name.charAt(0).toUpperCase()}
+                              {userName.charAt(0).toUpperCase()}
                             </div>
                             <div className="min-w-0">
                               <p className="text-sm font-semibold text-[#12151C] truncate flex items-center gap-1.5">
-                                {m.user.name}
-                                {owner && <Crown size={11} className="text-[#C08B2C] flex-shrink-0" />}
+                                {userName}
+                                {owner && (
+                                  <Crown
+                                    size={11}
+                                    className="text-[#C08B2C] flex-shrink-0"
+                                  />
+                                )}
                               </p>
-                              <p className="text-xs text-[#12151C]/45 truncate">{m.user.email}</p>
+                              <p className="text-xs text-[#12151C]/45 truncate">
+                                {userEmail}
+                              </p>
                             </div>
                           </Link>
                           {isOwner && !owner && (
                             <button
-                              onClick={() => handleRemoveMember(m._id, m.user.name)}
+                              onClick={() =>
+                                handleRemoveMember(m._id, userName)
+                              }
                               className="p-1.5 rounded-lg text-[#12151C]/30 hover:text-[#B3413A] hover:bg-[#FBEAE8] transition-colors flex-shrink-0"
                               aria-label="Remove member"
                             >
@@ -465,16 +561,26 @@ export default function RoomDetail() {
                   </AnimatePresence>
                 </div>
               ) : (
-                <p className="text-[#12151C]/30 italic text-sm">No members yet.</p>
+                <p className="text-[#12151C]/30 italic text-sm">
+                  No members yet.
+                </p>
               )}
             </motion.div>
           </div>
 
-          <motion.div variants={fadeUp} initial="hidden" animate="show" custom={2} className="md:col-span-2">
+          <motion.div
+            variants={fadeUp}
+            initial="hidden"
+            animate="show"
+            custom={2}
+            className="md:col-span-2"
+          >
             <div className="bg-white border border-[#E4E2DC] rounded-2xl p-6 sm:p-8">
               <div className="flex items-center gap-2 mb-5">
                 <Briefcase size={17} className="text-[#2F5D50]" />
-                <h2 className="font-display font-semibold text-[#12151C] tracking-tight">Jobs in this room</h2>
+                <h2 className="font-display font-semibold text-[#12151C] tracking-tight">
+                  Jobs in this room
+                </h2>
                 {jobs.length > 0 && (
                   <span className="font-mono text-[10px] font-semibold text-[#2F5D50] bg-[#EAF1EE] px-2 py-0.5 rounded-full ml-auto">
                     {jobs.length}
@@ -493,7 +599,9 @@ export default function RoomDetail() {
                   <div className="w-12 h-12 rounded-full bg-[#EAF1EE] flex items-center justify-center mx-auto mb-3">
                     <Briefcase size={18} className="text-[#2F5D50]" />
                   </div>
-                  <p className="text-[#12151C]/40 text-sm">No jobs posted in this room yet.</p>
+                  <p className="text-[#12151C]/40 text-sm">
+                    No jobs posted in this room yet.
+                  </p>
                 </div>
               )}
             </div>

@@ -187,7 +187,7 @@ export default function Rooms() {
               <p className={sectionLabel}>My rooms</p>
               {myRooms.length > 0 ? (
                 <div className="grid sm:grid-cols-2 gap-4">
-                  {myRooms.map((room) => (
+                  {myRooms?.map((room) => (
                     <RoomCard key={room._id} room={room} isMember />
                   ))}
                 </div>

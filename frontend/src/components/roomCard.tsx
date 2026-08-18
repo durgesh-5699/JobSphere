@@ -24,7 +24,7 @@ export default function RoomCard({ room, isMember }: { room: Room; isMember: boo
           </div>
           <div className="flex-1 min-w-0 pt-0.5">
             <h3 className="font-display font-semibold text-[#12151C] truncate group-hover:text-[#2F5D50] transition-colors">
-              {room.name}
+              {room?.name}
             </h3>
             <span className="inline-flex items-center gap-1 font-mono text-[10px] font-medium text-[#12151C]/40 uppercase tracking-wide mt-0.5">
               {room.isPublic ? <Globe size={11} /> : <Lock size={11} />}
